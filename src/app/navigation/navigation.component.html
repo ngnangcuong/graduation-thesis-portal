@@ -1,0 +1,62 @@
+<div class="container">
+    <div class="navigation-left">
+        <div class="navigation-left_header">
+            <div class="navigation-left_header_logo">
+                {{"Logo"}}
+            </div>
+        </div>
+        <div class="navigation-left_body">
+            <div class="navigation-left_body_add-new-channel">
+                <span class="fe--plus"></span>
+            </div>
+            <div class="navativation-left_body_settings">
+                <span class="carbon--settings"></span>
+            </div>
+        </div>
+    </div>
+    <div class="navigation-right">
+        <div class="navigation-right_header">
+            <div class="navigation-right_header_user-menu">
+                <div class="navigation-right_header_user-menu_user">
+
+                </div>
+                <div class="navigation-right_header_user-menu_status">
+
+                </div>
+            </div>
+            <div class="navigation-right_header_utils">
+                @for (util of utils; track $index) {
+                    <app-option class="navigation-right_header_option" [display]="util.display" [name]="util.name"></app-option>
+                }
+            </div>
+        </div>
+        <div class="navigation-right_body">
+            @for (conversationType of conversationTypeList; track $index) {
+                @if (conversationListPerType.get(conversationType)) {
+                    <div class="navigation-right_body_type">
+                        <div class="navigation-right_body_type_header">
+                            <span>{{conversationType}}</span>
+                        </div>
+                        <div class="navigation-right_body_type_list">
+                            @for (conversation of conversationListPerType.get(conversationType); track $index) {
+                                <app-conversation
+                                [name]="conversation" 
+                                (needToShowOptions)="showOptions($event)" 
+                                [index]="$index"
+                                ></app-conversation>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+        <div class="navigation-right_footer">
+            <div class="navigation-right_footer_logo">
+
+            </div>
+            <div class="navigation-right_footer_name">
+
+            </div>
+        </div>
+    </div>
+</div>

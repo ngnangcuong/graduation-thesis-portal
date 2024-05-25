@@ -1,0 +1,15 @@
+<div class="container">
+    <div class="header">
+        <div class="header_avatar"></div>
+        <div class="header_name">{{"ngnangcuong"}}</div>
+        <div class="header_timestamp">{{"May 15, 2024"}}</div>
+    </div>
+    <div class="body" [innerHTML]="content">
+
+    </div>
+    @if (displayCancel) {
+        <div class="cancel" (click)="onCancel()">
+            <span class="iconoir--cancel"></span>
+        </div>
+    }
+</div>

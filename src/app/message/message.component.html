@@ -1,0 +1,71 @@
+
+<div class="container">
+    <div class="avatar">
+        {{"Avatar"}}
+    </div>
+    <div class="message-info">
+        <div class="sender">
+            <div class="name">
+                {{"ngnangcuong"}}
+            </div>
+            <div class="timestamp">
+                {{"11:16PM"}}
+            </div>
+        </div>
+        <div class="content" [innerHTML]="message">
+        </div>
+        @if (quoteContent) {
+            <app-quote [content]="quoteContent" [displayCancel]="false"></app-quote>
+        }
+        @if (reactionList().length) {
+            <div class="reactions">
+                @for (reaction of reactionList(); track $index) {
+                    <div class="reaction">
+                        <span [innerHTML]="reaction.display" class="reaction_display"></span>
+                        <span class="reaction_length">{{reaction.users.length}}</span>
+                        <div class="reaction_detail">
+                            <span>{{showReactionDetail(reaction)}}</span>
+                        </div>
+                        <div class="reaction_detail_pointer"></div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+    
+    <div class="more_options">
+        <app-option (click)="showReactionOptions()"
+                    #add_reaction
+                    class="add_reaction"
+                    [display]="'material-symbols-light--add-reaction-outline'"
+                    [name]="'Add reaction'"></app-option>
+        
+        <app-option class="quote"
+                    [display]="'mdi-light--format-quote-close'"
+                    [name]="'Quote'"
+                    (click)="addQuote()"></app-option>
+        
+        <app-option class="forward_message"
+                    [display]="'system-uicons--forward'"
+                    [name]="'Forward message'"></app-option>
+        
+        <app-option class="more"
+                    [display]="'ph--dots-three-vertical'"
+                    [name]="'More'"></app-option>
+        <!-- <div (click)="showReactionOptions()" #add_reaction class="add_reaction">
+            <span class="material-symbols-light--add-reaction-outline"></span>
+        </div>
+        <div class="quote">
+            <span class="mdi-light--format-quote-close"></span>
+        </div>
+        <div class="forward_message">
+            <span class="system-uicons--forward"></span>
+        </div>
+        <div class="more">
+            <span class="ph--dots-three-vertical"></span>
+        </div> -->
+    </div>
+</div>
+@if(isShowReaction()) {
+    <emoji-mart #emoji set="facebook" class="emoji" (emojiClick)="addEmoji($event)"></emoji-mart>
+}

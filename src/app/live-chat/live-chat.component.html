@@ -1,0 +1,47 @@
+<div class="container">
+    <div class="header">
+        <div class="header_conversation">
+            <div class="header_coversation_avatar">
+                <!-- {{"AVATAR"}} -->
+            </div>
+            <div class="header_conversation_name">
+                <b>{{"Test"}}</b>
+            </div>
+            <div class="header_conversation_favorite">
+                <span class="material-symbols-light--star-outline"></span>
+            </div>
+        </div>
+        <div class="header_other-options">
+            @for (conversationOption of conversationOptions; track $index) {
+                <div class="header_other-option">
+                    <span [className]="conversationOption.display"></span>
+                    <div class="header_other-option_label">
+                        <span>{{conversationOption.name}}</span>
+                    </div>
+                    <div class="header_other-option_pointer"></div>
+                </div>
+
+                @if ($index == 0) {
+                    <div class="border"></div>
+                }
+            }
+        </div>
+    </div>
+    <div #bodyLiveChat class="body-live-chat">
+        @for (message of messages(); track message.message) {
+            <app-message [message]="message.message" 
+                        (quote)="addQuote($event)" 
+                        [quoteContent]="message.quote"></app-message>
+        }
+    </div>
+    <div class="footer">
+        @if(isQuote() != "") {
+            <app-quote [content]="isQuote()" 
+                        (cancel)="cancelQuote($event)"
+                        [displayCancel]="true"></app-quote>
+        }
+        <editor #editor [init]="" (onKeyDown)="sendMessage($event)">
+            {{"content"}}
+        </editor>
+    </div>
+</div>

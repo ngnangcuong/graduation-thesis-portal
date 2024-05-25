@@ -1,0 +1,25 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: none;
+    /* font-family: 'IBM Plex Sans Arabic', sans-serif; */
+}
+
+.root {
+    width: 100%;
+    height: 100vh;
+    box-sizing: border-box;
+    display: flex;
+}
+
+.live-chat {
+    width: 75%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.navigation {
+    width: 25%;
+    height: 100%;
+}

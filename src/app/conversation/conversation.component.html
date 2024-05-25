@@ -1,0 +1,28 @@
+<div class="conversation">
+    <div class="conversation_info">
+        <div class="conversation_info_avatar"></div>
+        <div class="conversation_info_name">
+            <span>{{name}}</span>
+        </div>
+    </div>
+    <div #conversationOptions (click)="showOptions()"
+        [class]="{
+            'conversation_options': !isShowOptions(),
+            'conversation_options_focus': isShowOptions()}">
+        <div #conversationOptionIcon class="conversation_options_icon">
+            <span class="pepicons-pencil--dots-y"></span>
+        </div>
+        <div #conversationOption [class]="{
+            'conversation_options_options_display': isShowOptions(),
+             'conversation_options_options_hidden': !isShowOptions()}">
+            @for (option of options; track $index) {
+                <div class="conversation_options_option">
+                    <div class="conversation_options_option_icon">
+                        <span [className]="option.display"></span>
+                    </div>
+                    <div class="conversation_options_option_label">{{option.name}}</div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
