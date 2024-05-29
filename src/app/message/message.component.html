@@ -1,8 +1,7 @@
 
 <div class="container">
-    <div class="avatar">
-        {{"Avatar"}}
-    </div>
+    <app-canvas class="avatar" [name]="'ngnangcuong'">
+    </app-canvas>
     <div class="message-info">
         <div class="sender">
             <div class="name">
@@ -49,9 +48,9 @@
                     [display]="'system-uicons--forward'"
                     [name]="'Forward message'"></app-option>
         
-        <app-option class="more"
-                    [display]="'ph--dots-three-vertical'"
-                    [name]="'More'"></app-option>
+        <app-option class="more" (click)="deleteMessage()"
+                    [display]="'material-symbols-light--delete-outline'"
+                    [name]="'Delete'"></app-option>
         <!-- <div (click)="showReactionOptions()" #add_reaction class="add_reaction">
             <span class="material-symbols-light--add-reaction-outline"></span>
         </div>

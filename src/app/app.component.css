@@ -19,7 +19,33 @@
     box-sizing: border-box;
 }
 
+.add-new-channel {
+    width: 75%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
 .navigation {
     width: 25%;
     height: 100%;
+}
+
+.confirm-dialog {
+    display: flex;
+    justify-content: center;
+    align-items: center ;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 100;
+}
+
+.toast {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    z-index: 100;
 }

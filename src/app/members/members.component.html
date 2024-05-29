@@ -1,0 +1,106 @@
+<div #membersInfo [class]="{
+    'container_on': display() == 'MembersInfo',
+    'container_off': display() != 'MembersInfo'
+}">
+    <div class="header">
+        <div class="header_info">
+            <div class="header_info_logo">
+                <span class="ph--users-light"></span>
+            </div>
+            <div class="header_info_label">Members</div>
+        </div>
+        <div class="header_cancel" (click)="onCancel()">
+            <span class="iconoir--cancel"></span>
+        </div>
+    </div>
+    <div class="body">
+        <div class="body_search">
+            <input type="text" placeholder="Search user in group">
+            <span class="carbon--search"></span>
+        </div>
+        <div class="body_adduser" (click)="switchToAddUser()">
+            <span>Add</span>
+        </div>
+    </div>
+    @if(members().length > 0) {
+        <div class="content">
+            <div class="content_quantity">
+                Showing {{members().length}} members
+            </div>
+            <div class="content_users">
+                @for (member of members(); track $index) {
+                    <div class="content_user">
+                        <div class="content_user_info">
+                            <app-canvas class="content_user_avatar" [name]="member"></app-canvas>
+                            <div class="content_user_status"></div>
+                            <div class="content_user_name">{{member}}</div>
+                            <div class="content_user_email">({{member}})</div>
+
+                        </div>
+                        <div class="content_user_remove" (click)="removeUser(member)">
+                            <span class="iconoir--cancel"></span>
+                        </div>
+                    </div>
+                }   
+            </div>
+        </div>
+
+    } @else {
+        <div class="content_notfound">
+            <div class="content_notfound_logo">
+                <span class="carbon--search"></span>
+            </div>
+            <div class="content_notfound_label">No members found</div>
+        </div>
+    }
+</div>
+
+<div #addUser [class]="{
+    'container_on': display() == 'AddUser',
+    'container_off': display() != 'AddUser'
+}">
+    <div class="header">
+        <div class="header_info">
+            <div class="header_info_logo_adduser" (click)="backToMembersInfo()">
+                <span class="lets-icons--back-light"></span>
+            </div>
+            <div class="header_info_label">Add Members</div>
+        </div>
+        <div class="header_cancel" (click)="onCancel()">
+            <span class="iconoir--cancel"></span>
+        </div>
+    </div>
+    <div class="body">
+        <div class="body_search">
+            <input type="text" placeholder="Search user to add">
+            <span class="carbon--search"></span>
+        </div>
+        <!-- <div class="body_adduser" (click)="switchToAddUser()">
+            <span>Add</span>
+        </div> -->
+    </div>
+    @if(members().length > 0) {
+        <div class="content">
+            <div class="content_quantity">
+                Showing {{members().length}} members
+            </div>
+            <div class="content_users">
+                @for (member of members(); track $index) {
+                    <div class="content_user">
+                        <div class="content_user_info">
+                            <app-canvas class="content_user_avatar" [name]="member"></app-canvas>
+                            <div class="content_user_status"></div>
+                            <div class="content_user_name">{{member}}</div>
+                            <div class="content_user_email">({{member}})</div>
+
+                        </div>
+                        <div class="content_user_remove" (click)="addNewUser(member)">
+                            <span class="fe--plus"></span>
+                        </div>
+                    </div>
+                }   
+            </div>
+        </div>
+
+    }
+</div>

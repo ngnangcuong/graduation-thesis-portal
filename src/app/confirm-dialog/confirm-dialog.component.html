@@ -1,1 +1,22 @@
-<p>confirm-dialog works!</p>
+<div class="container">
+    <div class="title">
+        <div class="title_warning">
+            <span class="ph--warning-light"></span>
+            <span class="title_warning_label">Are you sure?</span>
+        </div>
+        <div class="title_cancel">
+            <span class="iconoir--cancel" (click)="cancel()"></span>
+        </div>
+    </div>
+    <div class="detail">
+        <span>Are you sure you want to {{detail}}?</span>    
+    </div>
+    <div class="options">
+        <div class="option_cancel" (click)="cancel()">
+            <span>Cancel</span>
+        </div>
+        <div class="option_confirm" (click)="confirm()">
+            <span>{{action}}</span>
+        </div>
+    </div>
+</div>

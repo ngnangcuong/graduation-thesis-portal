@@ -1,0 +1,31 @@
+<div class="container">
+    <div class="header">
+        <div class="header_top">
+            <div class="header_label">
+                <span>Group:</span>
+            </div>
+            <input #groupnameInputField type="text" required placeholder="Set a group name">
+        </div>
+        <div class="header_down">
+            <div class="header_label">
+                <span>To:</span>
+            </div>
+            @for (user of userList(); track $index) {
+                <div class="header_user">
+                    <span class="header_user_name">{{user}}</span>
+                    <div class="header_user_cancel" (click)="removeUser(user)">
+                        <span class="iconoir--cancel"></span>
+    
+                    </div>
+                </div>
+            }
+            <input #usernameInputField type="text" required placeholder="Type a name" (keyup.enter)="addUser($event)">
+
+        </div>
+    </div>
+    <div class="footer">
+        <editor #editor [init] = "init" (onKeyDown)="sendMessage($event)">
+            {{"content"}}
+        </editor>
+    </div>
+</div>

@@ -3,11 +3,12 @@ import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { OptionComponent } from '../option/option.component';
 import { QuoteComponent } from '../quote/quote.component';
 import Reaction from '../../models/reaction';
+import { CanvasComponent } from '../canvas/canvas.component';
 
 @Component({
   selector: 'app-message',
   standalone: true,
-  imports: [PickerComponent, OptionComponent, QuoteComponent],
+  imports: [PickerComponent, OptionComponent, QuoteComponent, CanvasComponent],
   templateUrl: './message.component.html',
   styleUrl: './message.component.css'
 })
@@ -31,6 +32,9 @@ export class MessageComponent implements OnInit {
 
   @Output()
   quote = new EventEmitter<string>();
+
+  @Output()
+  needToConfirmDeleteMessage = new EventEmitter<string>();
   
   constructor() {
   }
@@ -87,5 +91,9 @@ export class MessageComponent implements OnInit {
       console.log(this.emojiMartComponent);
       this.isShowReaction.update(() => false);
     }
+  }
+
+  deleteMessage() {
+    this.needToConfirmDeleteMessage.emit(this.message);
   }
 }

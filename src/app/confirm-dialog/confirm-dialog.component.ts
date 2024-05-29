@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 
 @Component({
   selector: 'app-confirm-dialog',
@@ -8,5 +8,23 @@ import { Component } from '@angular/core';
   styleUrl: './confirm-dialog.component.css'
 })
 export class ConfirmDialogComponent {
+  @Input()
+  detail!:string;
 
+  @Input()
+  action!:string;
+
+  @Output()
+  cancelOutput = new EventEmitter<boolean>();
+
+  @Output()
+  confirmOutput = new EventEmitter<boolean>();
+
+  cancel() {
+    this.cancelOutput.emit(true);
+  } 
+
+  confirm() {
+    this.confirmOutput.emit(true);
+  }
 }

@@ -1,10 +1,11 @@
 import { AfterViewInit, Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, Signal, ViewChild, computed, effect, input, signal } from '@angular/core';
 import { Util } from '../../models/util';
+import { CanvasComponent } from '../canvas/canvas.component';
 
 @Component({
   selector: 'app-conversation',
   standalone: true,
-  imports: [],
+  imports: [CanvasComponent],
   providers: [],
   templateUrl: './conversation.component.html',
   styleUrl: './conversation.component.css'
@@ -16,8 +17,15 @@ export class ConversationComponent implements OnInit, AfterViewInit{
   @Input()
   index!:number;
 
+  currentConversation = input<string>();
+
+  @Output()
+  needToShow = new EventEmitter<string>();
+
   isShowOptions = signal(false);
   
+  @Output()
+  confirmLeaveGroup = new EventEmitter<string>();
 
   @Output()
   needToShowOptions = new EventEmitter<number>();
@@ -51,7 +59,6 @@ export class ConversationComponent implements OnInit, AfterViewInit{
   conversationOption!:ElementRef;
 
   constructor() {
-    
   }
 
   ngOnInit(): void {
@@ -68,6 +75,17 @@ export class ConversationComponent implements OnInit, AfterViewInit{
   handleClickOutside(event: Event) {
     if (this.isShowOptions() && !this.conversationOptions.nativeElement.contains(event.target as Node)) {
       this.isShowOptions.update(() => false);
+    }
+  }
+
+  showConversation() {
+    console.log(this.name);
+    this.needToShow.emit(this.name);
+  }
+
+  toConfirmLeaveGroup(option:string) {
+    if (option == 'Leave') {
+      this.confirmLeaveGroup.emit(this.name);
     }
   }
 }

@@ -293,14 +293,31 @@
     cursor: pointer;
 }
 
+.content {
+    height: 90%;
+    width: 100%;
+    display: flex;
+    
+}
+
+.content_chat {
+    height: 100%;
+    width: 100%;
+    min-width: 60%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
 .body-live-chat {
     display: flex;
     flex-direction: column-reverse;
     justify-content: flex-start;
-    height: 70%;
+    height: 75%;
     width: 100%;
     position: sticky;
     top: 10%;
+    /* bottom: 20%; */
     left: 0;
     overflow-y: scroll;
     scrollbar-width: thin;
@@ -309,16 +326,25 @@
 .footer {
     display: block;
     min-height: 20%;
+    /* max-height: 25%; */
     width: 100%;
     position: sticky;
     bottom: 0;
     left: 0;
     padding: 24px;
     box-sizing: border-box;
+    overflow-inline: clip;
 }
 
 .footer editor {
     width: 100%;
-    /* height: 100%; */
+    max-height: 100%;
+    resize: vertical;
     z-index: 100;
+    
+}
+
+.content_members {
+    height: 100%;
+    width: 100%;
 }

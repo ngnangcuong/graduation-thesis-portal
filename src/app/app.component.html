@@ -1,4 +1,34 @@
 <div class="root">
-  <app-navigation class="navigation"></app-navigation>
-  <app-live-chat class="live-chat"></app-live-chat>
+  <app-navigation class="navigation"
+                (isCreateGroup)="switchCreateNewGroupScreen($event)"
+                (conversation)="switchToConversation($event)"
+                (needToConfirmLeaveGroup)="showConfirmDialog($event)"  
+                (isDirectory)="switchToDirectory($event)"></app-navigation>
+  @if(isCreateNewGroupScreen()) {
+    <app-add-new-channel class="add-new-channel" (submit)="createNewGroupDone($event)"></app-add-new-channel>
+  }
+  @else if (liveChat()) {
+    <app-live-chat 
+      class="live-chat" 
+      [currrentConversation]="liveChat()"
+      (needToConfirmOutput)="showConfirmDialog($event)"
+      (testCallbackOutput)="test($event)" 
+      (testContext)="testContext($event)"></app-live-chat>
+  } @else if (directory()) {
+    <app-directory 
+      class="live-chat"
+      (liveChat)="switchToConversation($event)"></app-directory>
+  }
+  
+  @if(needToConfirm()) {
+    <app-confirm-dialog 
+      class="confirm-dialog" 
+      [action]="'Remove'" 
+      [detail]="'remove this user'"
+      (cancelOutput)="cancelConfirmDialog()"
+      (confirmOutput)="confirmAction($event)"></app-confirm-dialog>
+  }
+  @if(actionStatus() == 'success' || actionStatus() == 'error') {
+    <app-toast class="toast" [status]="actionStatus()"></app-toast> 
+  }
 </div>

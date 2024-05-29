@@ -1,6 +1,10 @@
-<div class="conversation">
+<div [class]="{
+    'conversation': currentConversation() != name,
+    'conversation_focus': currentConversation() == name,
+    }" 
+    (click)="showConversation()">
     <div class="conversation_info">
-        <div class="conversation_info_avatar"></div>
+        <app-canvas class="conversation_info_avatar" [name]="name"></app-canvas>
         <div class="conversation_info_name">
             <span>{{name}}</span>
         </div>
@@ -16,7 +20,7 @@
             'conversation_options_options_display': isShowOptions(),
              'conversation_options_options_hidden': !isShowOptions()}">
             @for (option of options; track $index) {
-                <div class="conversation_options_option">
+                <div class="conversation_options_option" (click)="toConfirmLeaveGroup(option.name)">
                     <div class="conversation_options_option_icon">
                         <span [className]="option.display"></span>
                     </div>

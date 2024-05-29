@@ -1,0 +1,103 @@
+<div class="container">
+    <div class="header">
+        <div class="header_label">
+            <span>Directory</span>
+        </div>
+    </div>
+    <div class="body">
+        <div class="body_types">
+            <div [class]="{
+                    'body_type': searchMode() != 'channel',
+                    'body_type_focus': searchMode() == 'channel'
+                }"
+                (click)="searchChannels()">
+                <span>Channels</span>
+            </div>
+            <div [class]="{
+                    'body_type': searchMode() != 'user',
+                    'body_type_focus': searchMode() == 'user'
+                }" 
+                (click)="searchUsers()">
+                <span>Users</span>
+            </div>
+        </div>
+        <div class="body_search">
+            <input type="text" placeholder="Search">
+            <span class="carbon--search"></span>
+        </div>
+        <div class="body_result">
+            <div class="body_result_row first">
+                <div class="body_result_column">
+                    <span>Name</span>
+                </div>
+                <div class="body_result_column">
+                    <span>Created At</span>
+                </div>
+            </div>
+            @for (item of result; track $index) {
+                <div class="body_result_row" (click)="switchToLiveChat(item)">
+                    <div class="body_result_column">
+                        <app-canvas class="body_result_column_avatar" [name]="item">
+
+                        </app-canvas>
+                        <div class="body_result_column_name">{{item}}</div>
+                        <div class="body_result_column_email">{{item}}</div>
+                    </div>
+                    <div class="body_result_column">
+                        <span class="body_result_column_createdat">July 28, 2015</span>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="footer">
+        <div class="footer_items-per-page">
+            <span>
+                Items per page:
+            </span>
+            <div class="footer_items-per-page_options">
+                <div [class]="{
+                        'footer_items-per-page_option_focus': limit() == 25,
+                        'footer_items-per-page_option': limit() != 25,
+                    }"
+                    (click)="changeLimit(25)">
+                    <span>25</span>
+                </div>
+                <div [class]="{
+                        'footer_items-per-page_option_focus': limit() == 50,
+                        'footer_items-per-page_option': limit() != 50,
+                    }" 
+                    (click)="changeLimit(50)">
+                    <span>50</span>
+                </div>
+                <div [class]="{
+                        'footer_items-per-page_option_focus': limit() == 100,
+                        'footer_items-per-page_option': limit() != 100,
+                    }" 
+                    (click)="changeLimit(100)">
+                    <span>100</span>
+                </div>
+            </div>
+        </div>
+        <div class="footer_pages">
+            <span class="footer_page" (click)="changePage(page() - 1)"><</span>
+            @if(page() - 2 > 0) {
+                <span class="footer_page" (click)="changePage(1)">1</span>
+                <span class="footer_page">...</span>
+                <span class="footer_page" (click)="changePage(page() - 1)">{{page() - 1}}</span>
+            } @else if (page() - 1 > 0) {
+                <span class="footer_page" (click)="changePage(page() - 1)">{{page() - 1}}</span>
+            }
+            <span class="footer_page_focus">{{page()}}</span>
+            @if(page() + 2 <= maxPage()) {
+                <span class="footer_page" (click)="changePage(page() + 1)">{{page() + 1}}</span>
+                <span class="footer_page">...</span>
+                <span class="footer_page" (click)="changePage(maxPage())">{{maxPage()}}</span>
+
+            } @else if (page() + 1 == maxPage()) {
+                <span class="footer_page" (click)="changePage(page() + 1)">{{page() + 1}}</span>
+            }
+            <span class="footer_page" (click)="changePage(page() + 1)">></span>
+        </div>
+    </div>
+</div>

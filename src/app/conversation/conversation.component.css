@@ -68,6 +68,26 @@
     align-items: center;
 }
 
+.conversation_focus {
+    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    width: 100%;
+    height: fit-content;
+    padding: 4px 24px;
+    box-sizing: border-box;
+    color: rgb(180, 180, 180);
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: rgba(255, 255, 255, .1);
+}
+
+conversation_focus:hover {
+    cursor: pointer;
+    background-color: rgb(40, 40, 40);
+}
+
 .conversation:hover {
     cursor: pointer;
     background-color: rgb(40, 40, 40);
@@ -111,6 +131,12 @@
 }
 
 .conversation:hover .conversation_options{
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(0px);  
+}
+
+.conversation_focus:hover .conversation_options{
     visibility: visible;
     opacity: 1;
     transform: translateX(0px);  

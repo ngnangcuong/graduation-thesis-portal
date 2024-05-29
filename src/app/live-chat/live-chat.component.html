@@ -5,7 +5,7 @@
                 <!-- {{"AVATAR"}} -->
             </div>
             <div class="header_conversation_name">
-                <b>{{"Test"}}</b>
+                <b>{{currrentConversation()}}</b>
             </div>
             <div class="header_conversation_favorite">
                 <span class="material-symbols-light--star-outline"></span>
@@ -13,7 +13,7 @@
         </div>
         <div class="header_other-options">
             @for (conversationOption of conversationOptions; track $index) {
-                <div class="header_other-option">
+                <div class="header_other-option" (click)="showOption(conversationOption.name)">
                     <span [className]="conversationOption.display"></span>
                     <div class="header_other-option_label">
                         <span>{{conversationOption.name}}</span>
@@ -27,21 +27,32 @@
             }
         </div>
     </div>
-    <div #bodyLiveChat class="body-live-chat">
-        @for (message of messages(); track message.message) {
-            <app-message [message]="message.message" 
-                        (quote)="addQuote($event)" 
-                        [quoteContent]="message.quote"></app-message>
+    <div class="content">
+        <div class="content_chat">
+            <div #bodyLiveChat class="body-live-chat">
+                @for (message of conversationMessages(); track message.message) {
+                    <app-message [message]="message.message" 
+                                (quote)="addQuote($event)" 
+                                [quoteContent]="message.quote"
+                                (needToConfirmDeleteMessage)="needToConfirm($event)"></app-message>
+                }
+            </div>
+            <div class="footer">
+                @if(isQuote() != "") {
+                    <app-quote [content]="isQuote()" 
+                                (cancel)="cancelQuote($event)"
+                                [displayCancel]="true"></app-quote>
+                }
+                <editor #editor [init] = "init" (onKeyDown)="sendMessage($event)">
+                    {{"content"}}
+                </editor>
+            </div>   
+        </div> 
+        @if(showMembers() != "") {
+            <app-members 
+                class="content_members" 
+                (cancel)="cancelOption()"
+                (needToConfirm)="needToConfirm($event)"></app-members>
         }
-    </div>
-    <div class="footer">
-        @if(isQuote() != "") {
-            <app-quote [content]="isQuote()" 
-                        (cancel)="cancelQuote($event)"
-                        [displayCancel]="true"></app-quote>
-        }
-        <editor #editor [init]="" (onKeyDown)="sendMessage($event)">
-            {{"content"}}
-        </editor>
     </div>
 </div>
