@@ -5,32 +5,74 @@ import { EditorComponent, EditorModule } from '@tinymce/tinymce-angular';
 import { QuoteComponent } from '../quote/quote.component';
 import Message from '../../models/message';
 import { MembersComponent } from '../members/members.component';
+import { UserServiceService } from '../user-service.service';
+import { GroupServiceService } from '../group-service.service';
+import { MessageServiceService } from '../message-service.service';
+import { WebsocketService } from '../websocket.service';
+import ConversationMessage from '../../models/message/conversationMessage';
+import GetUserResponse from '../../models/user/getUserResponse';
+import GetConversationResponse from '../../models/group/getConversationResponse';
+import { CanvasComponent } from '../canvas/canvas.component';
 // import tinymce from 'tinymce';
 
 @Component({
   selector: 'app-live-chat',
   standalone: true,
-  imports: [MessageComponent, EditorModule, QuoteComponent, MembersComponent],
+  imports: [MessageComponent, EditorModule, QuoteComponent, MembersComponent, CanvasComponent],
   templateUrl: './live-chat.component.html',
   styleUrl: './live-chat.component.css'
 })
 export class LiveChatComponent implements OnInit, AfterViewInit{
-  currrentConversation = input<string>();
+  userInfo = signal<GetUserResponse>(JSON.parse(localStorage.getItem("user_info")!));
+  authToken = input<string>();
+  userRemove = input<{
+    userID:string;
+    username:string;
+    email:string;
+    avatar:string;
+  }>();
+  userAdd = input<GetUserResponse>();
+  currrentConversation = input<{
+    conversationID: string;
+    conversationName: string;
+    conversationAvatar: string;
+  }>();
   conversation!:string;
-  currentMessages = signal<Message[]>([]);
+  currentMessages = signal<ConversationMessage[]>([]);
+  messageToReceive = input<Message>();
   conversationMessages = computed(() => {
-    const currentMessages = this.currentMessages();
+    const messageToReceive = this.messageToReceive();
     const currrentConversation = this.currrentConversation();
-    if (currrentConversation != this.conversation) {
-      this.conversation = currrentConversation!;
-      const newMessage:Message = {
-        message: currrentConversation!,
-        quote: "",
-      }
-      return [newMessage];
+    if (currrentConversation?.conversationID != this.conversation) {
+      // this.showMembers.set("");
+      this.conversation = currrentConversation?.conversationID!;
+      this.messageService.getConversationMessages(this.authToken()!, currrentConversation?.conversationID!).subscribe(
+        (val) => {
+          const result:ConversationMessage[] = val.result as ConversationMessage[];
+          this.currentMessages.update(val => result);
+          return result;
+        },
+        (err) => {
+          console.log("[getConversationMessage]", err);
+          return [];
+        }
+      )
+    } else if (messageToReceive?.conv_id != "") {
+      this.currentMessages.update(val => [messageToReceive!, ...val]);
     }
-    return currentMessages;
-  })
+    return this.currentMessages;
+  }, {})
+  conversationMembers:{
+    userID:string;
+    username:string;
+  }[] = [];
+  mapIDToUsername:Map<string, {
+    username:string;
+    avatar:string;
+  }> = new Map<string, {
+    username:string;
+    avatar:string;
+  }>();
 
   isQuote = signal<string>("");
   showMembers = signal<string>("");
@@ -78,15 +120,25 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
   bodyLiveChat!:ElementRef;
 
   @Output()
-  needToConfirmOutput = new EventEmitter<string>();
+  needToConfirmOutput = new EventEmitter<{
+    action:string;
+    detail:string;
+  }>();
 
   @Output()
-  testCallbackOutput = new EventEmitter<(context:any) => void>();
+  confirmCallback = new EventEmitter<(context:any) => boolean>();
 
   @Output()
-  testContext = new EventEmitter<Object>();
+  confirmContext = new EventEmitter<Object>();
 
-  constructor() {
+  @Output()
+  messageToSend = new EventEmitter<Message>();
+
+  constructor(private userService:UserServiceService,
+              private groupService:GroupServiceService,
+              private messageService:MessageServiceService,
+              private websocketService:WebsocketService,
+  ) {
     this.init = {
       force_br_newlines : true,
         convert_newlines_to_brs : false,
@@ -161,11 +213,55 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
       const messages = this.currentMessages();
       this.scrollToBottom();
     })
+    effect(() => {
+      const messageToReceive = this.messageToReceive();
+      const currrentConversation = this.currrentConversation();
+      if (currrentConversation?.conversationID != this.conversation) {
+        // this.showMembers.set("");
+        this.conversation = currrentConversation?.conversationID!;
+        this.messageService.getConversationMessages(this.authToken()!, currrentConversation?.conversationID!).subscribe(
+          (val) => {
+            const result:ConversationMessage[] = val.result as ConversationMessage[];
+            this.currentMessages.update(val => result);
+          },
+          (err) => {
+            console.log("[getConversationMessage]", err);
+          }
+        )
+      } else if (messageToReceive?.conv_id != "") {
+        this.currentMessages.update(val => [messageToReceive!, ...val]);
+      }
+    }, {allowSignalWrites: true})
 
   }
 
   ngOnInit(): void {
-
+    this.groupService.getConversation(this.userInfo()?.id!, this.currrentConversation()?.conversationID!).subscribe(
+      (val) => {
+        const result:GetConversationResponse = val.result as GetConversationResponse;
+        result.members.forEach((member) => {
+          this.userService.getUser(this.userInfo()?.id!, member).subscribe(
+            (val) => {
+              const user:GetUserResponse = val.result as GetUserResponse;
+              this.conversationMembers.push({
+                userID: member,
+                username: user.username,
+              })
+              this.mapIDToUsername.set(member, {
+                username: user.username,
+                avatar: user.avatar
+              });
+            },
+            (err) => {
+              console.log("[getUser]", err);
+            }
+          )
+        })
+      },
+      (err) => {
+        console.log("[getConversation]", err);
+      }
+    )
   }
 
   ngAfterViewInit(): void {
@@ -242,6 +338,12 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
     console.log(this.editorComponent);
   }
 
+  getUserFromMessage(message:ConversationMessage): {
+    username:string;
+    avatar:string;} {
+      return this.mapIDToUsername.get(message.sender)!;
+  }
+
   removeRedudantBr(content:string): string {
     var paragragh = content.split("<br>")
     paragragh = paragragh.filter((value) => value != '');
@@ -264,12 +366,25 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
     content != "<p></p>" && 
     content != "" &&
     !event.event.shiftKey) {
+      var receiver = "";
+      if (this.conversationMembers.length <= 2) {
+        if (this.conversationMembers[0].userID == this.userInfo().id) {
+          receiver = this.conversationMembers[1].userID;
+        } else {
+          receiver = this.conversationMembers[0].userID;
+        }
+      }
       const message:Message = {
-        message: content,
-        quote: this.isQuote(),
+        conv_id: this.conversation,
+        conv_msg_id: 0,
+        content: content,
+        sender: this.userInfo().id,
+        msg_time: Date.now(),
+        receiver: receiver,
       }
       this.cancelQuote(true);
-      this.currentMessages.update((value:Message[]) => [message, ...value]);
+      // this.currentMessages.update((value:Message[]) => [message, ...value]);
+      this.messageToSend.emit(message);
       console.log(event.editor.getContent({format: 'text'}));
       event.editor.resetContent();
       event.event.stopPropagation();
@@ -298,7 +413,7 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
         this.showMembers.set("");
         return
       }
-      this.showMembers.set(this.currrentConversation()!);
+      this.showMembers.set(this.currrentConversation()?.conversationID!);
       return
     }
   }
@@ -307,11 +422,18 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
     this.showMembers.set("");
   }
 
-  needToConfirm(event:string) {
-    this.needToConfirmOutput.emit(event);
-    this.testContext.emit({conversationMessages: this.conversationMessages()})
-    this.testCallbackOutput.emit((context:any) => {
-      console.log(context.conversationMessages);
-    })
+  needToConfirm(confirm:{
+    action:string;
+    detail:string;
+  }) {
+    this.needToConfirmOutput.emit(confirm);
+  }
+
+  forwardConfirmCallback(callback:(context:any) => boolean) {
+    this.confirmCallback.emit(callback);
+  }
+
+  forwardConfirmContext(context:Object) {
+    this.confirmContext.emit(context);
   }
 }

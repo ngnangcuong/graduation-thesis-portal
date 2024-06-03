@@ -7,13 +7,6 @@
     <div class="body">
         <div class="body_types">
             <div [class]="{
-                    'body_type': searchMode() != 'channel',
-                    'body_type_focus': searchMode() == 'channel'
-                }"
-                (click)="searchChannels()">
-                <span>Channels</span>
-            </div>
-            <div [class]="{
                     'body_type': searchMode() != 'user',
                     'body_type_focus': searchMode() == 'user'
                 }" 
@@ -22,7 +15,7 @@
             </div>
         </div>
         <div class="body_search">
-            <input type="text" placeholder="Search">
+            <input type="text" placeholder="Search" [formControl]="searchFormControl">
             <span class="carbon--search"></span>
         </div>
         <div class="body_result">
@@ -34,17 +27,18 @@
                     <span>Created At</span>
                 </div>
             </div>
-            @for (item of result; track $index) {
-                <div class="body_result_row" (click)="switchToLiveChat(item)">
+            @for (user of result; track $index) {
+                <div class="body_result_row" (click)="switchToLiveChat(user)">
                     <div class="body_result_column">
-                        <app-canvas class="body_result_column_avatar" [name]="item">
-
+                        <app-canvas class="body_result_column_avatar"
+                                    [name]="user.username"
+                                    [backgroundColor]="user.avatar">
                         </app-canvas>
-                        <div class="body_result_column_name">{{item}}</div>
-                        <div class="body_result_column_email">{{item}}</div>
+                        <div class="body_result_column_name">{{user.username}}</div>
+                        <div class="body_result_column_email">{{user.email}}</div>
                     </div>
                     <div class="body_result_column">
-                        <span class="body_result_column_createdat">July 28, 2015</span>
+                        <span class="body_result_column_createdat">{{user.created_at}}</span>
                     </div>
                 </div>
             }

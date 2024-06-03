@@ -1,34 +1,57 @@
-<div class="root">
-  <app-navigation class="navigation"
-                (isCreateGroup)="switchCreateNewGroupScreen($event)"
-                (conversation)="switchToConversation($event)"
-                (needToConfirmLeaveGroup)="showConfirmDialog($event)"  
-                (isDirectory)="switchToDirectory($event)"></app-navigation>
-  @if(isCreateNewGroupScreen()) {
-    <app-add-new-channel class="add-new-channel" (submit)="createNewGroupDone($event)"></app-add-new-channel>
-  }
-  @else if (liveChat()) {
-    <app-live-chat 
-      class="live-chat" 
-      [currrentConversation]="liveChat()"
-      (needToConfirmOutput)="showConfirmDialog($event)"
-      (testCallbackOutput)="test($event)" 
-      (testContext)="testContext($event)"></app-live-chat>
-  } @else if (directory()) {
-    <app-directory 
-      class="live-chat"
-      (liveChat)="switchToConversation($event)"></app-directory>
-  }
-  
-  @if(needToConfirm()) {
-    <app-confirm-dialog 
-      class="confirm-dialog" 
-      [action]="'Remove'" 
-      [detail]="'remove this user'"
-      (cancelOutput)="cancelConfirmDialog()"
-      (confirmOutput)="confirmAction($event)"></app-confirm-dialog>
-  }
-  @if(actionStatus() == 'success' || actionStatus() == 'error') {
-    <app-toast class="toast" [status]="actionStatus()"></app-toast> 
-  }
-</div>
+@if (!this.userInfo()) {
+  <div class="root">
+    <app-navigation class="navigation"
+                  (isCreateGroup)="switchCreateNewGroupScreen($event)"
+                  (conversation)="switchToConversation($event)"
+                  (needToConfirmLeaveGroup)="showConfirmDialog($event)"
+                  (confirmCallback)="forwardConfirmCallback($event)"
+                  (confirmContext)="forwardConfirmContext($event)" 
+                  (isDirectory)="switchToDirectory($event)"
+                  [authToken]="authToken"
+                  [newConversation]="newConversation()"
+                  [removeConversation]="removeConversation()"></app-navigation>
+    @if(isCreateNewGroupScreen()) {
+      <app-add-new-channel class="add-new-channel"
+                           (submit)="createNewGroupDone($event)"
+                           [userInfo]="userInfo()"></app-add-new-channel>
+    }
+    @else if (liveChat().conversationID != "") {
+      <app-live-chat 
+        class="live-chat" 
+        [authToken]="authToken"
+        [currrentConversation]="liveChat()"
+        (messageToSend)="sendMessage($event)"
+        [messageToReceive]="messageToReceive()"
+        (needToConfirmOutput)="showConfirmDialog($event)"
+        (confirmCallback)="forwardConfirmCallback($event)"
+        (confirmContext)="forwardConfirmContext($event)"
+        [userAdd]="userAdd()"
+        [userRemove]="userRemove()"></app-live-chat>
+    } @else if (directory()) {
+      <app-directory 
+        class="live-chat"
+        (liveChat)="switchToConversation($event)"
+        (addNewConversation)="addNewConversation($event, 'conversation')"></app-directory>
+    }
+    
+    @if(needToConfirm()) {
+      <app-confirm-dialog 
+        class="confirm-dialog" 
+        [action]="actionConfirm()" 
+        [detail]="detailConfirm()"
+        [confirmCallback]="confirmCallback()"
+        [confirmContext]="confirmContext()"
+        (cancelOutput)="cancelConfirmDialog()"
+        (confirmOutput)="confirmAction($event)"
+        (removeConversation)="removeExistConversation($event)"
+        (userRemove)="removeExistedUser($event)"
+        (userAdd)="addNewUser($event)"></app-confirm-dialog>
+    }
+    @if(actionStatus() == 'success' || actionStatus() == 'error') {
+      <app-toast class="toast" [status]="actionStatus()"></app-toast> 
+    }
+  </div>
+} 
+@else {
+  <app-login class="root"></app-login>
+}

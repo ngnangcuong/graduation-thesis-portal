@@ -18,28 +18,34 @@
             <input type="text" placeholder="Search user in group">
             <span class="carbon--search"></span>
         </div>
-        <div class="body_adduser" (click)="switchToAddUser()">
-            <span>Add</span>
-        </div>
+        @if(isAdmin) {
+            <div class="body_adduser" (click)="switchToAddUser()">
+                <span>Add</span>
+            </div>
+        }
     </div>
-    @if(members().length > 0) {
+    @if(conversationMembers().length > 0) {
         <div class="content">
             <div class="content_quantity">
-                Showing {{members().length}} members
+                Showing {{conversationMembers().length}} members
             </div>
             <div class="content_users">
-                @for (member of members(); track $index) {
+                @for (member of conversationMembers(); track member.userID) {
                     <div class="content_user">
                         <div class="content_user_info">
-                            <app-canvas class="content_user_avatar" [name]="member"></app-canvas>
+                            <app-canvas class="content_user_avatar" 
+                                        [name]="member.username"
+                                        [backgroundColor]="member.avatar"></app-canvas>
                             <div class="content_user_status"></div>
-                            <div class="content_user_name">{{member}}</div>
-                            <div class="content_user_email">({{member}})</div>
+                            <div class="content_user_name">{{member.username}}</div>
+                            <div class="content_user_email">({{member.email}})</div>
 
                         </div>
-                        <div class="content_user_remove" (click)="removeUser(member)">
-                            <span class="iconoir--cancel"></span>
-                        </div>
+                        @if (isAdmin) {
+                            <div class="content_user_remove" (click)="removeUser(member.userID)">
+                                <span class="iconoir--cancel"></span>
+                            </div>
+                        }
                     </div>
                 }   
             </div>
@@ -72,29 +78,31 @@
     </div>
     <div class="body">
         <div class="body_search">
-            <input type="text" placeholder="Search user to add">
+            <input type="text" [formControl]="searchUserFormControl" placeholder="Search user to add">
             <span class="carbon--search"></span>
         </div>
         <!-- <div class="body_adduser" (click)="switchToAddUser()">
             <span>Add</span>
         </div> -->
     </div>
-    @if(members().length > 0) {
+    @if(result().length > 0) {
         <div class="content">
             <div class="content_quantity">
-                Showing {{members().length}} members
+                Showing {{result().length}} members
             </div>
             <div class="content_users">
-                @for (member of members(); track $index) {
+                @for (member of result(); track $index) {
                     <div class="content_user">
                         <div class="content_user_info">
-                            <app-canvas class="content_user_avatar" [name]="member"></app-canvas>
+                            <app-canvas class="content_user_avatar" 
+                                        [name]="member.username"
+                                        [backgroundColor]="member.avatar"></app-canvas>
                             <div class="content_user_status"></div>
-                            <div class="content_user_name">{{member}}</div>
-                            <div class="content_user_email">({{member}})</div>
+                            <div class="content_user_name">{{member.username}}</div>
+                            <div class="content_user_email">({{member.email}})</div>
 
                         </div>
-                        <div class="content_user_remove" (click)="addNewUser(member)">
+                        <div class="content_user_remove" (click)="addNewUser(member.id)">
                             <span class="fe--plus"></span>
                         </div>
                     </div>

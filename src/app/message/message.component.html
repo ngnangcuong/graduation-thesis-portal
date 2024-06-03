@@ -1,17 +1,19 @@
 
 <div class="container">
-    <app-canvas class="avatar" [name]="'ngnangcuong'">
+    <app-canvas class="avatar"
+                [name]="username()"
+                [backgroundColor]="avatar()!">
     </app-canvas>
     <div class="message-info">
         <div class="sender">
             <div class="name">
-                {{"ngnangcuong"}}
+                {{username()}}
             </div>
             <div class="timestamp">
-                {{"11:16PM"}}
+                {{message.msg_time | date:'H:mm a'}}
             </div>
         </div>
-        <div class="content" [innerHTML]="message">
+        <div class="content" [innerHTML]="message.content">
         </div>
         @if (quoteContent) {
             <app-quote [content]="quoteContent" [displayCancel]="false"></app-quote>

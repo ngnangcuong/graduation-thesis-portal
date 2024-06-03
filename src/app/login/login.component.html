@@ -1,0 +1,123 @@
+<div class="container">
+    <div class="box">
+        @if (mode() == "Login") {
+
+            <div class="box_header">
+                <div class="box_header_label">
+                    <span>Login</span>
+                </div>
+            </div>
+            <div class="box_body">
+                <div class="box_body_input">
+                    <div class="box_body_input_label" for="username">
+                        <span>Email or username</span>
+                    </div>
+                    <input class="box_body_input_field" 
+                           type="text" 
+                           id="username"
+                           placeholder="example@example.com"
+                           [formControl]="usernameLogin" 
+                           required>
+                </div>
+                <div class="box_body_input">
+                    <div class="box_body_input_label" for="password">
+                        <span>Password</span>
+                    </div>
+                    <input class="box_body_input_field" 
+                           type="text" 
+                           id="password"
+                           [type]="'password'" 
+                           [formControl]="passwordLogin"
+                           required>
+                </div>
+            </div>
+            <div class="box_notify">
+                <span>{{errorMessage()}}</span>
+            </div>
+            <div class="box_footer">
+                <div class="box_footer_button" (click)="login()">
+                    <span>Login</span>
+                </div>
+                <div class="box_footer_switch">
+                    <span>New here?</span>
+                    <span (click)="switchMode('Register')">Create a account</span>
+                </div>
+            </div>
+        }
+        @if (mode() == "Register") {
+            <div class="box_header">
+                <div class="box_header_label">
+                    <span>Create a new account</span>
+                </div>
+            </div>
+            <div class="box_body">
+                <div class="box_body_input">
+                    <div class="box_body_input_label" for="username">
+                        <span>Name</span>
+                    </div>
+                    <input class="box_body_input_field" 
+                           type="text" 
+                           id="name"
+                           placeholder="First and last name" 
+                           [formControl]="nameRegister"
+                           required>
+                </div>
+                <div class="box_body_input">
+                    <div class="box_body_input_label" for="password">
+                        <span>Email</span>
+                    </div>
+                    <input class="box_body_input_field" 
+                           type="text" 
+                           id="email"
+                           placeholder="example@example.com" 
+                           [formControl]="emailRegister"
+                           required>
+                </div>
+                <div class="box_body_input">
+                    <div class="box_body_input_label" for="username">
+                        <span>Username</span>
+                    </div>
+                    <input class="box_body_input_field" 
+                           type="text" 
+                           id="username"
+                           placeholder="jon.doe" 
+                           [formControl]="usernameRegister"
+                           required>
+                </div>
+                <div class="box_body_input">
+                    <div class="box_body_input_label" for="username">
+                        <span>Password</span>
+                    </div>
+                    <input class="box_body_input_field" 
+                           type="text" 
+                           [type]="'password'"
+                           id="password"
+                           [formControl]="passwordRegister"
+                           required>
+                </div>
+                <div class="box_body_input">
+                    <div class="box_body_input_label" for="username">
+                        <span>Confirm your password</span>
+                    </div>
+                    <input class="box_body_input_field" 
+                           type="text" 
+                           [type]="'password'"
+                           id="confirmPassword"
+                           [formControl]="confirmPasswordRegister"
+                           required>
+                </div>
+            </div>
+            <div class="box_notify">
+                <span>{{errorMessage()}}</span>
+            </div>
+            <div class="box_footer">
+                <div class="box_footer_button" (click)="register()">
+                    <span>Join your team</span>
+                </div>
+                <div class="box_footer_switch">
+                    <span (click)="switchMode('Login')">Back to login</span>
+                </div>
+            </div>
+        }
+    </div>
+</div>

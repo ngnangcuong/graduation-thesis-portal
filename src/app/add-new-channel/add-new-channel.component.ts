@@ -1,6 +1,15 @@
-import { AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild, signal } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, EventEmitter, Output, ViewChild, input, signal } from '@angular/core';
 import { EditorComponent } from '@tinymce/tinymce-angular';
 import Message from '../../models/message';
+import ConversationMessage from '../../models/message/conversationMessage';
+import GetUserResponse from '../../models/user/getUserResponse';
+import { UserServiceService } from '../user-service.service';
+import { GroupServiceService } from '../group-service.service';
+import { WebsocketService } from '../websocket.service';
+import CreateGroupRequest from '../../models/group/createGroupRequest';
+import CreateGroupResponse from '../../models/group/createGroupResponse';
+import { Observable, concatMap, forkJoin } from 'rxjs';
+import CustomResponse from '../../models/response';
 
 @Component({
   selector: 'app-add-new-channel',
@@ -11,7 +20,8 @@ import Message from '../../models/message';
 })
 export class AddNewChannelComponent implements AfterViewInit {
   userList = signal<string[]>([]);
-  messages = signal<Message[]>([]);
+  messages = signal<ConversationMessage[]>([]);
+  userInfo = input<GetUserResponse>();
 
   @ViewChild("usernameInputField", {read: ElementRef})
   usernameInputField!:ElementRef;
@@ -20,11 +30,18 @@ export class AddNewChannelComponent implements AfterViewInit {
   groupnameInputField!:ElementRef;
 
   @Output()
-  submit = new EventEmitter<string>();
+  submit = new EventEmitter<{
+    conversationID: string;
+    conversationName: string;
+    conversationAvatar: string;
+  }>();
 
   init = {}
 
-  constructor() {
+  constructor(private userService:UserServiceService,
+              private groupService:GroupServiceService,
+              private websocketService: WebsocketService
+  ) {
     this.init = {
       force_br_newlines : true,
         convert_newlines_to_brs : false,
@@ -124,9 +141,45 @@ export class AddNewChannelComponent implements AfterViewInit {
     content != "<p></p>" && 
     content != "" &&
     !event.event.shiftKey) {
+      var group:CreateGroupResponse = {
+        conv_id: "",
+        group_id: ""
+      };
+      const requests = this.makeUserInfoRequests();
+      forkJoin(
+        [...requests]
+      ).subscribe((results:CustomResponse[]) => {
+        var createGroupRequest:CreateGroupRequest = {
+          group_name: this.groupnameInputField.nativeElement.value,
+          members: [this.userInfo()?.id!]
+        };
+        results.forEach((val) => {
+          const user:GetUserResponse = val.result as GetUserResponse;
+          createGroupRequest.members.push(user.id);
+        })
+
+        this.groupService.createGroup(this.userInfo()?.id!, createGroupRequest).subscribe(
+          (val) => {
+            const result:CreateGroupResponse = val.result as CreateGroupResponse;
+            group = result;
+            this.submit.emit({
+              conversationID: group.conv_id,
+              conversationName: this.groupnameInputField.nativeElement.value!,
+              conversationAvatar: "#1abc9c"
+            });
+          },
+          (err) => {
+            console.log(err);
+          }
+        );
+      })
       const message:Message = {
-        message: content,
-        quote: "",
+        conv_id: group.conv_id,
+        conv_msg_id: 0,
+        content: content,
+        sender: this.userInfo()?.id!,
+        msg_time: Date.now(),
+        receiver: "",
       }
       this.cancelQuote(true);
       this.messages.update((value) => [message, ...value]);
@@ -134,9 +187,16 @@ export class AddNewChannelComponent implements AfterViewInit {
       event.editor.resetContent();
       event.event.stopPropagation();
       event.event.preventDefault();
-      this.submit.emit(this.groupnameInputField.nativeElement.value);
     }
 
+  }
+
+  makeUserInfoRequests(): Observable<CustomResponse>[] {
+    var result:Observable<CustomResponse>[] = [];
+    this.userList().forEach((username) => {
+      result.push(this.userService.getUserByUsername(this.userInfo()?.id!, username))
+    });
+    return result;
   }
 
   cancelQuote(val:boolean) {}

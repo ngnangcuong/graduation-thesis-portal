@@ -1,11 +1,13 @@
 <div class="container">
     <div class="header">
         <div class="header_conversation">
-            <div class="header_coversation_avatar">
+            <app-canvas class="header_coversation_avatar" 
+                        [name]="currrentConversation()?.conversationName"
+                        [backgroundColor]="currrentConversation()?.conversationAvatar!">
                 <!-- {{"AVATAR"}} -->
-            </div>
+            </app-canvas>
             <div class="header_conversation_name">
-                <b>{{currrentConversation()}}</b>
+                <b>{{currrentConversation()?.conversationName}}</b>
             </div>
             <div class="header_conversation_favorite">
                 <span class="material-symbols-light--star-outline"></span>
@@ -30,10 +32,12 @@
     <div class="content">
         <div class="content_chat">
             <div #bodyLiveChat class="body-live-chat">
-                @for (message of conversationMessages(); track message.message) {
-                    <app-message [message]="message.message" 
+                @for (message of currentMessages(); track message.conv_msg_id) {
+                    <app-message [message]="message" 
                                 (quote)="addQuote($event)" 
-                                [quoteContent]="message.quote"
+                                [quoteContent]="''"
+                                [username]="getUserFromMessage(message).username"
+                                [avatar]="getUserFromMessage(message).avatar"
                                 (needToConfirmDeleteMessage)="needToConfirm($event)"></app-message>
                 }
             </div>
@@ -48,11 +52,16 @@
                 </editor>
             </div>   
         </div> 
-        @if(showMembers() != "") {
+        @if(showMembers() == currrentConversation()?.conversationID) {
             <app-members 
                 class="content_members" 
                 (cancel)="cancelOption()"
-                (needToConfirm)="needToConfirm($event)"></app-members>
+                [conversationID]="currrentConversation()?.conversationID"
+                (confirmCallback)="forwardConfirmCallback($event)"
+                (confirmContext)="forwardConfirmContext($event)"
+                (needToConfirm)="needToConfirm($event)"
+                [userAdd]="userAdd()!"
+                [userRemove]="userRemove()!"></app-members>
         }
     </div>
 </div>

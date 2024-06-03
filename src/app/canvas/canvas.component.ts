@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, Input } from '@angular/core';
+import { Component, ElementRef, ViewChild, Input, input, effect } from '@angular/core';
 
 @Component({
   selector: 'app-canvas',
@@ -8,13 +8,20 @@ import { Component, ElementRef, ViewChild, Input } from '@angular/core';
   styleUrl: './canvas.component.css'
 })
 export class CanvasComponent {
-  @Input() 
-  name!: string;
+  name = input<string>();
   initials!: string;
+  @Input()
   backgroundColor!: string;
 
+  constructor() {
+    effect(() => {
+      const name = this.name();
+      this.initials = this.getInitials(name!);
+    })
+  }
+
   ngOnInit() {
-    this.initials = this.getInitials(this.name);
+    this.initials = this.getInitials(this.name()!);
     this.backgroundColor = this.getRandomColor();
   }
 

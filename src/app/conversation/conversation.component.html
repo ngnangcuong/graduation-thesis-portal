@@ -1,12 +1,14 @@
 <div [class]="{
-    'conversation': currentConversation() != name,
-    'conversation_focus': currentConversation() == name,
+    'conversation': currentConversation() != conversationID(),
+    'conversation_focus': currentConversation() == conversationID(),
     }" 
     (click)="showConversation()">
     <div class="conversation_info">
-        <app-canvas class="conversation_info_avatar" [name]="name"></app-canvas>
+        <app-canvas class="conversation_info_avatar" 
+                    [name]="conversationName()"
+                    [backgroundColor]="conversationAvatar()"></app-canvas>
         <div class="conversation_info_name">
-            <span>{{name}}</span>
+            <span>{{conversationName()}}</span>
         </div>
     </div>
     <div #conversationOptions (click)="showOptions()"

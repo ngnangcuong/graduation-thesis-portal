@@ -1,20 +1,25 @@
-import { Component, Input, OnInit, signal, effect, ViewChild, ElementRef, HostListener, Output, EventEmitter } from '@angular/core';
+import { Component, Input, OnInit, signal, effect, ViewChild, ElementRef, HostListener, Output, EventEmitter, input } from '@angular/core';
 import { PickerComponent } from '@ctrl/ngx-emoji-mart';
 import { OptionComponent } from '../option/option.component';
 import { QuoteComponent } from '../quote/quote.component';
 import Reaction from '../../models/reaction';
 import { CanvasComponent } from '../canvas/canvas.component';
+import ConversationMessage from '../../models/message/conversationMessage';
+import { DatePipe } from '@angular/common';
 
 @Component({
   selector: 'app-message',
   standalone: true,
-  imports: [PickerComponent, OptionComponent, QuoteComponent, CanvasComponent],
+  imports: [PickerComponent, OptionComponent, QuoteComponent, CanvasComponent, DatePipe],
   templateUrl: './message.component.html',
   styleUrl: './message.component.css'
 })
 export class MessageComponent implements OnInit {
   @Input()
-  message: string = "";
+  message!: ConversationMessage;
+
+  username = input<string>();
+  avatar = input<string>();
 
   @Input()
   quoteContent: string = "";
@@ -34,7 +39,10 @@ export class MessageComponent implements OnInit {
   quote = new EventEmitter<string>();
 
   @Output()
-  needToConfirmDeleteMessage = new EventEmitter<string>();
+  needToConfirmDeleteMessage = new EventEmitter<{
+    action: string;
+    detail: string;
+  }>();
   
   constructor() {
   }
@@ -67,7 +75,7 @@ export class MessageComponent implements OnInit {
   }
 
   addQuote() {
-    this.quote.emit(this.message);
+    this.quote.emit(this.message.content);
   }
 
   showReactionDetail(reaction:Reaction): string {
@@ -94,6 +102,9 @@ export class MessageComponent implements OnInit {
   }
 
   deleteMessage() {
-    this.needToConfirmDeleteMessage.emit(this.message);
+    this.needToConfirmDeleteMessage.emit({
+      action: "Delete",
+      detail: "delete this message"
+    });
   }
 }

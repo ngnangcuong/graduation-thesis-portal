@@ -16,28 +16,25 @@
     @if (searchMode()) {
         <div #searchMode class="navigation-right">
             <div class="navigation-right_header">
-                <input type="text" class="navigation-right_header_input" placeholder="Search">
+                <input type="text" [formControl]="searchConversationFormControl" class="navigation-right_header_input" placeholder="Search">
                 <span class="iconoir--cancel" (click)="switchDefaultMode($event)"></span>
             </div>
             <div class="navigation-right_body">
-                @for (conversationType of conversationTypeList; track $index) {
-                    @if (conversationListPerType.get(conversationType)) {
-                        <div class="navigation-right_body_type">
-                            <div class="navigation-right_body_type_list">
-                                @for (conversation of conversationListPerType.get(conversationType); track $index) {
-                                    <app-conversation
-                                    [name]="conversation" 
-                                    (needToShowOptions)="showOptions($event)" 
-                                    [index]="$index"
-                                    [currentConversation]="currentConversation()"
-                                    (needToShow)="showConversation($event)"
-                                    (confirmLeaveGroup)="confirmLeaveGroup($event)"
-                                    ></app-conversation>
-                                }
-                            </div>
-                        </div>
-                    }
-                }
+                <div class="navigation-right_body_type">
+                    <div class="navigation-right_body_type_list">
+                        @for (conversation of conversationListAfterSearch; track conversation) {
+                            <app-conversation
+                            (needToShowOptions)="showOptions($event)"
+                            [conversationID]="conversation.conversationID"
+                            [name]="conversation.conversationName" 
+                            [currentConversation]="currentConversation()"
+                            (needToShow)="showConversation($event)"
+                            (confirmLeaveGroup)="confirmLeaveGroup($event)"
+                            ></app-conversation>
+                        }
+                    </div>
+                </div>
+                
             </div>
         </div>
     } @else {
@@ -45,7 +42,8 @@
         <div #default class="navigation-right">
             <div class="navigation-right_header">
                 <div class="navigation-right_header_user-menu">
-                    <app-canvas class="navigation-right_header_user-menu_user" [name]="'ngnangcuong'">
+                    <app-canvas class="navigation-right_header_user-menu_user"
+                                [name]="'ngnangcuong'">
     
                     </app-canvas>
                     <div class="navigation-right_header_user-menu_status">
@@ -80,27 +78,52 @@
                 </div>
             </div>
             <div class="navigation-right_body">
-                @for (conversationType of conversationTypeList; track $index) {
-                    @if (conversationListPerType.get(conversationType)) {
-                        <div class="navigation-right_body_type">
-                            <div class="navigation-right_body_type_header">
-                                <span>{{conversationType}}</span>
-                            </div>
-                            <div class="navigation-right_body_type_list">
-                                @for (conversation of conversationListPerType.get(conversationType); track $index) {
-                                    <app-conversation
-                                    [name]="conversation" 
-                                    (needToShowOptions)="showOptions($event)" 
-                                    [index]="$index"
-                                    [currentConversation]="currentConversation()"
-                                    (needToShow)="showConversation($event)"
-                                    (confirmLeaveGroup)="confirmLeaveGroup($event)"
-                                    ></app-conversation>
-                                }
-                            </div>
+                @if (channelList().length > 0) {
+                    <div class="navigation-right_body_type">
+                        <div class="navigation-right_body_type_header">
+                            <span>Channels</span>
                         </div>
-                    }
+                        <div class="navigation-right_body_type_list">
+                            @for (conversation of channelList(); track $index) {
+                                <app-conversation
+                                (needToShowOptions)="showOptions($event)" 
+                                [conversationID]="conversation"
+                                [isDirected]="false"
+                                [currentConversation]="currentConversation()"
+                                (needToShow)="showConversation($event)"
+                                (notifyConversationName)="getConversationNameFrom($event)"
+                                (confirmCallback)="forwardConfirmCallback($event)"
+                                (confirmContext)="forwardConfirmContext($event)"
+                                (confirmLeaveGroup)="confirmLeaveGroup($event)"
+                                ></app-conversation>
+                            }
+                        </div>
+                    </div>
                 }
+
+                @if (directedConversationList().length > 0) {
+                    <div class="navigation-right_body_type">
+                        <div class="navigation-right_body_type_header">
+                            <span>Conversations</span>
+                        </div>
+                        <div class="navigation-right_body_type_list">
+                            @for (conversation of directedConversationList(); track $index) {
+                                <app-conversation
+                                (needToShowOptions)="showOptions($event)" 
+                                [conversationID]="conversation"
+                                [isDirected]="true"
+                                [currentConversation]="currentConversation()"
+                                (needToShow)="showConversation($event)"
+                                (notifyConversationName)="getConversationNameFrom($event)"
+                                (confirmCallback)="forwardConfirmCallback($event)"
+                                (confirmContext)="forwardConfirmContext($event)"
+                                (confirmLeaveGroup)="confirmLeaveGroup($event)"
+                                ></app-conversation>
+                            }
+                        </div>
+                    </div>
+                }
+                
             </div>
             <div class="navigation-right_footer">
                 <div class="navigation-right_footer_logo">
