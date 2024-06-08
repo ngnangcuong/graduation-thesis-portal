@@ -30,6 +30,7 @@
                             [currentConversation]="currentConversation()"
                             (needToShow)="showConversation($event)"
                             (confirmLeaveGroup)="confirmLeaveGroup($event)"
+                            [messageToReceive]="messageToReceive()"
                             ></app-conversation>
                         }
                     </div>
@@ -95,6 +96,7 @@
                                 (confirmCallback)="forwardConfirmCallback($event)"
                                 (confirmContext)="forwardConfirmContext($event)"
                                 (confirmLeaveGroup)="confirmLeaveGroup($event)"
+                                [messageToReceive]="messageToReceive()"
                                 ></app-conversation>
                             }
                         </div>
@@ -118,6 +120,7 @@
                                 (confirmCallback)="forwardConfirmCallback($event)"
                                 (confirmContext)="forwardConfirmContext($event)"
                                 (confirmLeaveGroup)="confirmLeaveGroup($event)"
+                                [messageToReceive]="messageToReceive()"
                                 ></app-conversation>
                             }
                         </div>

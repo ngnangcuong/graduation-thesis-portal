@@ -11,6 +11,7 @@ import GetConversationContainUserResponse from '../../models/group/getConversati
 import GetConversationResponse from '../../models/group/getConversationResponse';
 import GetGroupResponse from '../../models/group/getGroupResponse';
 import { Subject, debounceTime, distinctUntilChanged, map } from 'rxjs';
+import Message from '../../models/message';
 
 @Component({
   selector: 'app-navigation',
@@ -37,6 +38,7 @@ export class NavigationComponent implements OnInit{
   searchConversationTerms$ = new Subject<string>();
   userInfo = signal<GetUserResponse>(JSON.parse(localStorage.getItem("user_info")!));
   authToken = input<string>();
+  messageToReceive = input<Message>();
   @Output()
   isCreateGroup = new EventEmitter<boolean>();
 
@@ -117,6 +119,18 @@ export class NavigationComponent implements OnInit{
         this.removeExistedConversation(removeConversation!);
       }
     }, {allowSignalWrites: true})
+    
+    effect(() => {
+      const newMessage:Message = this.messageToReceive()!;
+      const existedConversation = this.conversationList.filter(value => value.conversationID == newMessage.conv_id);
+      if (existedConversation.length == 0) {
+        if (newMessage.receiver != "") {
+          this.directedConversationList.update(val => [...val, newMessage.conv_id]);
+        } else {
+          this.channelList.update(val => [...val, newMessage.conv_id]);
+        }
+      }
+    })
   }
 
   addNewConversation(newConversation:{conversationID:string;

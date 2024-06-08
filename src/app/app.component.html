@@ -1,4 +1,4 @@
-@if (!this.userInfo()) {
+@if (this.userInfo()) {
   <div class="root">
     <app-navigation class="navigation"
                   (isCreateGroup)="switchCreateNewGroupScreen($event)"
@@ -8,6 +8,7 @@
                   (confirmContext)="forwardConfirmContext($event)" 
                   (isDirectory)="switchToDirectory($event)"
                   [authToken]="authToken"
+                  [messageToReceive]="messageToReceive()"
                   [newConversation]="newConversation()"
                   [removeConversation]="removeConversation()"></app-navigation>
     @if(isCreateNewGroupScreen()) {
@@ -53,5 +54,6 @@
   </div>
 } 
 @else {
-  <app-login class="root"></app-login>
+  <app-login class="root"
+             (successfulLogin)="handleSuccessfulLogin($event)"></app-login>
 }

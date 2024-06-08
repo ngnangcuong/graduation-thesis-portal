@@ -32,12 +32,11 @@
     <div class="content">
         <div class="content_chat">
             <div #bodyLiveChat class="body-live-chat">
-                @for (message of currentMessages(); track message.conv_msg_id) {
+                @for (message of currentMessages; track message.conv_msg_id) {
                     <app-message [message]="message" 
                                 (quote)="addQuote($event)" 
-                                [quoteContent]="''"
-                                [username]="getUserFromMessage(message).username"
-                                [avatar]="getUserFromMessage(message).avatar"
+                                [username]="mapIDToUsername.get(message.sender)!().username"
+                                [avatar]="mapIDToUsername.get(message.sender)!().avatar"
                                 (needToConfirmDeleteMessage)="needToConfirm($event)"></app-message>
                 }
             </div>

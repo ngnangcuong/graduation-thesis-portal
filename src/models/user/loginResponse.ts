@@ -1,4 +1,5 @@
 export default interface LoginResponse {
+    user_id:string;
     access_token:string;
     access_uuid:string;
     refresh_token:string;

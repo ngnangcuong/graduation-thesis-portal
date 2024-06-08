@@ -6,6 +6,7 @@ import { GroupServiceService } from '../group-service.service';
 import GetConversationResponse from '../../models/group/getConversationResponse';
 import GetUserResponse from '../../models/user/getUserResponse';
 import GetGroupResponse from '../../models/group/getGroupResponse';
+import Message from '../../models/message';
 
 @Component({
   selector: 'app-conversation',
@@ -22,6 +23,16 @@ export class ConversationComponent implements OnInit, AfterViewInit{
   conversationName = signal<string>("");
   conversationAvatar = signal<string>("");
   groupID = signal<string>("");
+  messageToReceive = input<Message>();
+  newMessage = 0;
+  messageNew:Message = {
+    conv_id: "",
+    conv_msg_id: 0,
+    msg_time: 0,
+    sender: "",
+    content: "",
+    receiver: "",
+  };
 
   @Input()
   isDirected!:boolean;
@@ -86,7 +97,14 @@ export class ConversationComponent implements OnInit, AfterViewInit{
               public groupService:GroupServiceService
   ) {
     effect(() => {
-      
+      const messageToReceive = this.messageToReceive();
+      if (messageToReceive?.conv_id != "" &&
+          messageToReceive?.conv_id == this.conversationID() && 
+          this.currentConversation() != this.conversationID() &&
+          this.messageNew.conv_msg_id != messageToReceive?.conv_msg_id) {
+        this.newMessage++;
+        this.messageNew = messageToReceive!;
+      }
     
     })
   }
@@ -171,6 +189,7 @@ export class ConversationComponent implements OnInit, AfterViewInit{
 
   showConversation() {
     this.needToShow.emit(this.conversationID());
+    this.newMessage = 0;
   }
 
   toConfirmLeaveGroup(option:string) {

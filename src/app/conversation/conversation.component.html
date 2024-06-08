@@ -11,6 +11,11 @@
             <span>{{conversationName()}}</span>
         </div>
     </div>
+    @if (newMessage > 0) {
+        <div class="conversation_info_new-message">
+            <span>{{newMessage}}</span>
+        </div>
+    }
     <div #conversationOptions (click)="showOptions()"
         [class]="{
             'conversation_options': !isShowOptions(),

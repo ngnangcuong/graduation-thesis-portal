@@ -1,7 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, EventEmitter, Output, signal } from '@angular/core';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { UserServiceService } from '../user-service.service';
 import CreateUserRequest from '../../models/user/registerRequest';
+import CustomResponse from '../../models/response';
+import LoginRequest from '../../models/user/loginRequest';
+import LoginResponse from '../../models/user/loginResponse';
 
 @Component({
   selector: 'app-login',
@@ -20,6 +23,9 @@ export class LoginComponent {
   passwordRegister = new FormControl('');
   confirmPasswordRegister = new FormControl('');
   errorMessage = signal<string>("");
+
+  @Output()
+  successfulLogin = new EventEmitter<string>();
 
   constructor(public userService:UserServiceService) {
   }
@@ -63,14 +69,29 @@ export class LoginComponent {
         this.errorMessage.set("Create user successfully, you can login now.");
         this.mode.set("Login");
       },
-      (err) => {
-        console.log(typeof(err));
-        console.log(err);
+      (err:CustomResponse) => {
+        this.errorMessage.set(err.error_message);
       }
     )
   }
 
   login() {
+    const username = this.usernameLogin.value;
+    const password = this.passwordLogin.value;
+    const loginRequest:LoginRequest = {
+      username: username!,
+      password: password!,
+    };
+    this.userService.login(loginRequest).subscribe(
+      (val) => {
+        const result:LoginResponse = val.result as LoginResponse;
+        localStorage.setItem("access_token", result.access_token);
+        localStorage.setItem("refresh_token", result.refresh_token);
+        this.successfulLogin.emit(result.user_id);
+      },
+      (err:CustomResponse) => {
 
+      }
+    )
   }
 }

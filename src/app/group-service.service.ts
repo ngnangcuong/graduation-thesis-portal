@@ -10,7 +10,7 @@ import CreateConversationRequest from '../models/group/createConversationRequest
   providedIn: 'root'
 })
 export class GroupServiceService {
-  private baseUrl = "http://192.168.77.112:8099/v1";
+  private baseUrl = "http://192.168.77.105:8099/v1";
   constructor(private http:HttpClient) { }
 
   private handleError(error: HttpErrorResponse) {

@@ -110,6 +110,18 @@ conversation_focus:hover {
 .conversation_info_name {
     
 }
+
+.conversation_info_new-message {
+    height: 20px;
+    aspect-ratio: 1/1;
+    border-radius: 50%;
+    color: #fff;
+    background-color: red;
+    margin-left: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 .conversation_options {
     height: fit-content;
     width: fit-content;

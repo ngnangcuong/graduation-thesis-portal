@@ -11,20 +11,13 @@ import RefreshRequest from '../models/user/refreshRequest';
   providedIn: 'root',
 })
 export class UserServiceService {
-  private baseUrl = 'http://192.168.77.112:8098/v1';
+  private baseUrl = 'http://192.168.77.105:8098/v1';
 
   constructor(private http:HttpClient) { }
 
   private handleError(error: HttpErrorResponse) {
-    let errorMessage = 'Unknown error!';
-    if (error.error instanceof ErrorEvent) {
-      // Lỗi client-side hoặc network
-      errorMessage = `Error: ${error.error.message}`;
-    } else {
-      // Lỗi server-side
-      errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
-    }
-    return throwError(errorMessage);
+    const response:CustomResponse = error.error as CustomResponse;
+    return throwError(response);
   }
 
   login(loginRequest:LoginRequest): Observable<CustomResponse> {
@@ -59,7 +52,7 @@ export class UserServiceService {
   getUserByUsername(authToken:string, username:string): Observable<CustomResponse> {
     const httpHeaders:HttpHeaders = new HttpHeaders().set("X-User-ID", authToken);
     const httpParams:HttpParams = new HttpParams().set("username", username);
-    return this.http.get<CustomResponse>(`${this.baseUrl}/user/`, {headers: httpHeaders, params: httpParams})
+    return this.http.get<CustomResponse>(`${this.baseUrl}/user`, {headers: httpHeaders, params: httpParams})
       .pipe(
         catchError(this.handleError)
       );

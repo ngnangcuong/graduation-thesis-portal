@@ -13,6 +13,7 @@ import ConversationMessage from '../../models/message/conversationMessage';
 import GetUserResponse from '../../models/user/getUserResponse';
 import GetConversationResponse from '../../models/group/getConversationResponse';
 import { CanvasComponent } from '../canvas/canvas.component';
+import UpdateReadReceiptRequest from '../../models/message/updateReadReceiptRequest';
 // import tinymce from 'tinymce';
 
 @Component({
@@ -38,41 +39,41 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
     conversationAvatar: string;
   }>();
   conversation!:string;
-  currentMessages = signal<ConversationMessage[]>([]);
+  currentMessages:ConversationMessage[] = [];
   messageToReceive = input<Message>();
-  conversationMessages = computed(() => {
-    const messageToReceive = this.messageToReceive();
-    const currrentConversation = this.currrentConversation();
-    if (currrentConversation?.conversationID != this.conversation) {
-      // this.showMembers.set("");
-      this.conversation = currrentConversation?.conversationID!;
-      this.messageService.getConversationMessages(this.authToken()!, currrentConversation?.conversationID!).subscribe(
-        (val) => {
-          const result:ConversationMessage[] = val.result as ConversationMessage[];
-          this.currentMessages.update(val => result);
-          return result;
-        },
-        (err) => {
-          console.log("[getConversationMessage]", err);
-          return [];
-        }
-      )
-    } else if (messageToReceive?.conv_id != "") {
-      this.currentMessages.update(val => [messageToReceive!, ...val]);
-    }
-    return this.currentMessages;
-  }, {})
+  // conversationMessages = computed(() => {
+  //   const messageToReceive = this.messageToReceive();
+  //   const currrentConversation = this.currrentConversation();
+  //   if (currrentConversation?.conversationID != this.conversation) {
+  //     // this.showMembers.set("");
+  //     this.conversation = currrentConversation?.conversationID!;
+  //     this.messageService.getConversationMessages(this.authToken()!, currrentConversation?.conversationID!).subscribe(
+  //       (val) => {
+  //         const result:ConversationMessage[] = val.result as ConversationMessage[];
+  //         this.currentMessages.update(val => result);
+  //         return result;
+  //       },
+  //       (err) => {
+  //         console.log("[getConversationMessage]", err);
+  //         return [];
+  //       }
+  //     )
+  //   } else if (messageToReceive?.conv_id != "") {
+  //     this.currentMessages.update(val => [messageToReceive!, ...val]);
+  //   }
+  //   return this.currentMessages;
+  // }, {})
   conversationMembers:{
     userID:string;
     username:string;
   }[] = [];
-  mapIDToUsername:Map<string, {
+  mapIDToUsername:Map<string, Signal<{
     username:string;
     avatar:string;
-  }> = new Map<string, {
+  }>> = new Map<string, Signal<{
     username:string;
     avatar:string;
-  }>();
+  }>>();
 
   isQuote = signal<string>("");
   showMembers = signal<string>("");
@@ -209,59 +210,94 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
           
         },
     }
-    effect(() => {
-      const messages = this.currentMessages();
-      this.scrollToBottom();
-    })
+    // effect(() => {
+    //   const messages = this.currentMessages();
+    //   this.scrollToBottom();
+    // })
     effect(() => {
       const messageToReceive = this.messageToReceive();
       const currrentConversation = this.currrentConversation();
       if (currrentConversation?.conversationID != this.conversation) {
         // this.showMembers.set("");
         this.conversation = currrentConversation?.conversationID!;
+        this.conversationMembers = [];
+        this.groupService.getConversation(this.userInfo()?.id!, this.currrentConversation()?.conversationID!).subscribe(
+          (val) => {
+            const result:GetConversationResponse = val.result as GetConversationResponse;
+            result.members.forEach((member) => {
+              this.userService.getUser(this.userInfo()?.id!, member).subscribe(
+                (val) => {
+                  const user:GetUserResponse = val.result as GetUserResponse;
+                  this.conversationMembers.push({
+                    userID: member,
+                    username: user.username,
+                  })
+                  this.mapIDToUsername.set(member, signal({
+                    username: user.username,
+                    avatar: user.avatar
+                  }));
+                },
+                (err) => {
+                  console.log("[getUser]", err);
+                }
+              )
+            })
+          },
+          (err) => {
+            console.log("[getConversation]", err);
+          }
+        )
+        console.log("[conversationMembers]", this.conversationMembers)
         this.messageService.getConversationMessages(this.authToken()!, currrentConversation?.conversationID!).subscribe(
           (val) => {
             const result:ConversationMessage[] = val.result as ConversationMessage[];
-            this.currentMessages.update(val => result);
+            this.currentMessages = result;
           },
           (err) => {
+            this.currentMessages = [];
             console.log("[getConversationMessage]", err);
           }
         )
-      } else if (messageToReceive?.conv_id != "") {
-        this.currentMessages.update(val => [messageToReceive!, ...val]);
+      } else if (messageToReceive?.conv_id == currrentConversation.conversationID) {
+        if (this.currentMessages.length) {
+          this.currentMessages =  [messageToReceive!, ...this.currentMessages];
+
+        } else {
+          this.currentMessages = [messageToReceive];
+        }
       }
-    }, {allowSignalWrites: true})
+      this.scrollToBottom();
+    })
 
   }
 
   ngOnInit(): void {
-    this.groupService.getConversation(this.userInfo()?.id!, this.currrentConversation()?.conversationID!).subscribe(
-      (val) => {
-        const result:GetConversationResponse = val.result as GetConversationResponse;
-        result.members.forEach((member) => {
-          this.userService.getUser(this.userInfo()?.id!, member).subscribe(
-            (val) => {
-              const user:GetUserResponse = val.result as GetUserResponse;
-              this.conversationMembers.push({
-                userID: member,
-                username: user.username,
-              })
-              this.mapIDToUsername.set(member, {
-                username: user.username,
-                avatar: user.avatar
-              });
-            },
-            (err) => {
-              console.log("[getUser]", err);
-            }
-          )
-        })
-      },
-      (err) => {
-        console.log("[getConversation]", err);
-      }
-    )
+    // this.groupService.getConversation(this.userInfo()?.id!, this.currrentConversation()?.conversationID!).subscribe(
+    //   (val) => {
+    //     const result:GetConversationResponse = val.result as GetConversationResponse;
+    //     result.members.forEach((member) => {
+    //       this.userService.getUser(this.userInfo()?.id!, member).subscribe(
+    //         (val) => {
+    //           const user:GetUserResponse = val.result as GetUserResponse;
+    //           this.conversationMembers.push({
+    //             userID: member,
+    //             username: user.username,
+    //           })
+    //           this.mapIDToUsername.set(member, signal({
+    //             username: user.username,
+    //             avatar: user.avatar
+    //           }));
+    //         },
+    //         (err) => {
+    //           console.log("[getUser]", err);
+    //         }
+    //       )
+    //     })
+    //   },
+    //   (err) => {
+    //     console.log("[getConversation]", err);
+    //   }
+    // )
   }
 
   ngAfterViewInit(): void {
@@ -338,11 +374,11 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
     console.log(this.editorComponent);
   }
 
-  getUserFromMessage(message:ConversationMessage): {
-    username:string;
-    avatar:string;} {
-      return this.mapIDToUsername.get(message.sender)!;
-  }
+  // getUserFromMessage(message:ConversationMessage): {
+  //   username:string;
+  //   avatar:string;} {
+  //     return this.mapIDToUsername.get(message.sender)!;
+  // }
 
   removeRedudantBr(content:string): string {
     var paragragh = content.split("<br>")
@@ -395,7 +431,14 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
   scrollToBottom() {
     setTimeout(() => {
       this.bodyLiveChat.nativeElement.scrollTop = this.bodyLiveChat.nativeElement.scrollHeight;
-      
+      const updateReadReceipt:UpdateReadReceiptRequest = {
+        conv_id: this.currrentConversation()?.conversationID!,
+        read_receipt_update: [{
+          user_id: this.userInfo().id,
+          msg_id: 100,
+        }]
+      }
+      this.messageService.updateReadReceipt(this.authToken()!, updateReadReceipt).subscribe()
     }, 10);
   }
 

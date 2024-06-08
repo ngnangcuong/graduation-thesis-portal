@@ -8,16 +8,30 @@ import ConversationMessage from '../models/message/conversationMessage';
   providedIn: 'root'
 })
 export class WebsocketService {
-
+  private ws: WebSocket | null = null;
   private socket$!: WebSocketSubject<Message>;
 
   constructor() {
     // this.socket$ = webSocket('ws://your-websocket-server-url');
-    // const conn = new WebSocket("ws://192.168.77.112:8082/ws?user_id=1e9113a3-5cae-4067-b6a6-530e68bab7e3", )
+    // const conn = new WebSocket("ws://192.168.77.105:8082/ws?user_id=1e9113a3-5cae-4067-b6a6-530e68bab7e3", )
   }
 
   connect(url:string) {
+    console.log("connect")
+    // this.ws = new WebSocket(url);
     this.socket$ = webSocket(url);
+    // this.ws.onerror = (event) => {
+    //   console.error('WebSocket error', event);
+    // };
+
+    // this.ws.onclose = () => {
+    //   console.log('WebSocket closed, attempting to reconnect...');
+    //   this.reconnect(url);
+    // };
+  }
+
+  private reconnect(url: string): void {
+    setTimeout(() => this.connect(url), 3000);
   }
 
   sendMessage(message: Message): void {

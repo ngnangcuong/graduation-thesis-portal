@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, effect, signal } from '@angular/core';
 import { RouterModule, RouterOutlet } from '@angular/router';
 import { LiveChatComponent } from './live-chat/live-chat.component';
 import { NavigationComponent } from './navigation/navigation.component';
@@ -19,6 +19,7 @@ import { DatePipe } from '@angular/common';
 import { LoginComponent } from './login/login.component';
 import { routes } from './app.routes';
 import { ErrorInterceptor } from './error.interceptor';
+import CustomResponse from '../models/response';
 
 @Component({
   selector: 'app-root',
@@ -65,9 +66,8 @@ export class AppComponent implements OnInit, OnDestroy {
   directory = signal(false);
   needToConfirm = signal<boolean>(false);
   actionStatus = signal<string>("");
-  authToken:string = "1e9113a3-5cae-4067-b6a6-530e68bab7e3";
   userInfo = signal<GetUserResponse>(JSON.parse(localStorage.getItem("user_info")!));
-  userID:string = "1e9113a3-5cae-4067-b6a6-530e68bab7e3";
+  authToken:string = this.userInfo()?.id!;
   confirmCallback = signal<(context:any) => boolean>(() => true);
   confirmContext = signal<Object>({});
   actionConfirm = signal<string>("");
@@ -120,8 +120,8 @@ export class AppComponent implements OnInit, OnDestroy {
     type: "",
   });
 
-  url = `ws://192.168.77.112:8082/user/ws?user_id=${this.userInfo().id}`;
-  websocketConnection = this.websocketService.connect(this.url);
+  url = ``;
+  // websocketConnection = this.websocketService.connect(this.url);
   messageSubscription!: Subscription;
   messageToReceive = signal<Message>({
     conv_id: "",
@@ -135,10 +135,39 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(private websocketService:WebsocketService,
               private userService:UserServiceService,
   ) {
+    if (this.userInfo()) {
+      this.authToken = this.userInfo().id;
+      this.url = `ws://192.168.77.105:8082/user/ws?user_id=${this.userInfo().id}`
+      this.websocketService.connect(this.url);
+    }
+    // effect(() => {
+    //   const userInfo:GetUserResponse = this.userInfo();
+    //   if (userInfo) {
+    //     this.authToken = this.userInfo().id;
+    //     this.url = `ws://192.168.77.105:8082/user/ws?user_id=${this.userInfo().id}`
+    //     this.websocketService.connect(this.url);
+    //   }
+    // })
+  }
 
+  handleSuccessfulLogin(userID:string) {
+    this.userService.getUser(userID, userID).subscribe(
+      (val) => {
+        const user:GetUserResponse = val.result as GetUserResponse;
+        this.userInfo.set(user);
+        this.authToken = user.id;
+        this.url = `ws://192.168.77.105:8082/user/ws?user_id=${this.userInfo().id}`
+        this.websocketService.connect(this.url);
+        localStorage.setItem("user_info", JSON.stringify(user));
+      },
+      (err:CustomResponse) => {
+        console.log(err);
+      }
+    )
   }
 
   sendMessage(message:Message) {
+    console.log(message);
     this.websocketService.sendMessage(message);
   }
 
@@ -165,19 +194,26 @@ export class AppComponent implements OnInit, OnDestroy {
         // const parseMessage:Message = JSON.parse(message) as Message;
         // this.messages.push(message);
         this.messageToReceive.set(message);
+        setTimeout(() => {
+          this.messageToReceive.set({
+            conv_id: "",
+            conv_msg_id: 0,
+            msg_time: 0,
+            sender: "",
+            content: "",
+            receiver: "",
+          });
+        }, 10);
       },
       (error) => {
         console.error('WebSocket error:', error);
+        if (error instanceof CloseEvent) {
+          console.log("Reconnect");
+        } 
+        // setTimeout(() => this.websocketService.connect(this.url), 3000);
+        console.log("Reconnect again", this.messageSubscription);
       }
     );
-
-    this.userService.getUser(this.authToken, this.userID).subscribe(
-      (val) => {
-        const result:GetUserResponse = val.result as GetUserResponse;
-        this.userInfo.set(result);
-        localStorage.setItem("user_info", JSON.stringify(result));
-      }
-    )
   }
 
   ngOnDestroy(): void {
