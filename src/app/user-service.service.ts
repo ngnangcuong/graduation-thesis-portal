@@ -1,11 +1,12 @@
 import { HttpClient, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, of, switchMap, throwError } from 'rxjs';
 import LoginRequest from '../models/user/loginRequest';
 import CustomResponse from '../models/response';
 import CreateUserRequest from '../models/user/registerRequest';
 import UpdateUserRequest from '../models/user/updateUserRequest';
 import RefreshRequest from '../models/user/refreshRequest';
+import LoginResponse from '../models/user/loginResponse';
 
 @Injectable({
   providedIn: 'root',
@@ -34,8 +35,9 @@ export class UserServiceService {
       );
   }
 
-  logout(): Observable<CustomResponse> {
-    return this.http.get<CustomResponse>(`${this.baseUrl}/auth/logout`)
+  logout(authToken:string): Observable<CustomResponse> {
+    const httpHeaders = new HttpHeaders().set("Authorization", `Bearer ${authToken}`); 
+    return this.http.get<CustomResponse>(`${this.baseUrl}/auth/logout`, {headers: httpHeaders})
       .pipe(
         catchError(this.handleError)
       );
@@ -77,11 +79,34 @@ export class UserServiceService {
       );
   }
 
-  updateUser(userID:string, id: string, updateUserRequest:UpdateUserRequest): Observable<CustomResponse> {
-    const httpHeaders:HttpHeaders = new HttpHeaders().set("X-User-ID", userID)
+  updateUser(authToken:string, id: string, updateUserRequest:UpdateUserRequest): Observable<CustomResponse> {
+    const httpHeaders:HttpHeaders = new HttpHeaders().set("Authorization", `Bearer ${authToken}`);
     return this.http.put<CustomResponse>(`${this.baseUrl}/user/${id}`, updateUserRequest, {headers: httpHeaders})
-      .pipe(
-        catchError(this.handleError)
-      );
+    .pipe(
+      catchError((error: HttpErrorResponse) => {
+        const response:CustomResponse = error.error as CustomResponse;
+        if (response.status == 401) {
+          const refreshRequest:RefreshRequest = {
+            refresh_token: localStorage.getItem("refresh_token")!,
+          }
+          this.refresh(refreshRequest).subscribe(
+            (result) => {
+              const tokenDetails:LoginResponse = result.result as LoginResponse;
+              if (tokenDetails) {
+                localStorage.setItem("access_token", tokenDetails.access_token);
+                localStorage.setItem("refresh_token", tokenDetails.refresh_token);
+              }
+              return of(null).pipe(
+                switchMap(() => this.updateUser(tokenDetails.access_token, id, updateUserRequest))
+              )
+            },
+            (err:CustomResponse) => {
+              return throwError(err)
+            }
+          )
+        }
+        return throwError(response);
+      })
+    );
   }
 }

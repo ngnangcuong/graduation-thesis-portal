@@ -8,4 +8,5 @@ export default interface GetUserResponse {
     avatar:string;
     created_at:Date;
     last_updated:Date;
+    public_key:string;
 }

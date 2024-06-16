@@ -90,7 +90,7 @@ export class DirectoryComponent {
 
   switchToLiveChat(user:GetUserResponse) {
     var conversationID = "";
-    this.groupService.getDirectedConversation(this.userInfo()?.id!, user.id).subscribe(
+    this.groupService.getDirectedConversation(localStorage.getItem("access_token")!, user.id).subscribe(
       (val) => {
         const result:string = val.result as string;
         if (result) {

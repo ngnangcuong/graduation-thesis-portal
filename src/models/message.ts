@@ -4,5 +4,6 @@ export default interface Message {
     msg_time:number;
     sender:string;
     content:string;
+    iv:string;
     receiver:string;
 }

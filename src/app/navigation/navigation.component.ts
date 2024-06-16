@@ -65,6 +65,9 @@ export class NavigationComponent implements OnInit{
   @Output()
   isDirectory = new EventEmitter<boolean>();
 
+  @Output()
+  isLogout = new EventEmitter<boolean>();
+
   utils:Util[] = [
     {
       name: "Home",
@@ -162,7 +165,7 @@ export class NavigationComponent implements OnInit{
   ngOnInit(): void {
     var conversations!:GetConversationContainUserResponse[];
     
-    this.groupService.getConversationContainUser(this.userInfo()?.id!).subscribe(
+    this.groupService.getConversationContainUser(localStorage.getItem("access_token")!, this.userInfo()?.id!).subscribe(
       (val) => {
         conversations = val.result as GetConversationContainUserResponse[];
         this.classifyConversation(conversations);
@@ -295,5 +298,18 @@ export class NavigationComponent implements OnInit{
 
   switchToDirectory() {
     this.isDirectory.emit(true);
+  }
+
+  logout() {
+    this.userService.logout(localStorage.getItem("access_token")!).subscribe(
+      (val) => {
+        
+      }
+    )
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    localStorage.removeItem(`${this.userInfo().id}_private_key`);    
+    localStorage.removeItem("user_info");
+    this.isLogout.emit(true);
   }
 }

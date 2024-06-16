@@ -120,7 +120,7 @@ export class MembersComponent implements OnInit{
         console.log("[getConversation]", err);
       }
     )
-    this.groupService.getGroup(this.userInfo()?.id!, "", "", this.conversationID()!).subscribe(
+    this.groupService.getGroup(localStorage.getItem("access_token")!, "", "", this.conversationID()!).subscribe(
       val => {
         const result:GetGroupResponse = val.result as GetGroupResponse;
         this.groupID = result.id;
@@ -144,7 +144,7 @@ export class MembersComponent implements OnInit{
           groupService: this.groupService,
           groupID: this.groupID, 
           userID: userID, 
-          userInfo: this.userInfo(),
+          authToken: localStorage.getItem("access_token"),
           userRemove: user});
       }
     });
@@ -157,7 +157,7 @@ export class MembersComponent implements OnInit{
           users: [context.userID],
         }]
       }
-      context.groupService.updateGroup(context.userInfo.id, context.groupID, updateGroupRequest).subscribe(
+      context.groupService.updateGroup(context.authToken, context.groupID, updateGroupRequest).subscribe(
         () => {
           console.log("Success");
         },
@@ -181,7 +181,7 @@ export class MembersComponent implements OnInit{
           groupService: this.groupService,
           groupID: this.groupID, 
           userID: userID, 
-          userInfo: this.userInfo(),
+          authToken: localStorage.getItem("access_token"),
           userAdd: user});
       }
     })
@@ -194,7 +194,7 @@ export class MembersComponent implements OnInit{
           users: [context.userID],
         }]
       }
-      context.groupService.updateGroup(context.userInfo.id, context.groupID, updateGroupRequest).subscribe(
+      context.groupService.updateGroup(context.authToken, context.groupID, updateGroupRequest).subscribe(
         () => {
           console.log("Success");
         },

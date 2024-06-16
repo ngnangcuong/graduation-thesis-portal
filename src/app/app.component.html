@@ -8,13 +8,15 @@
                   (confirmContext)="forwardConfirmContext($event)" 
                   (isDirectory)="switchToDirectory($event)"
                   [authToken]="authToken"
+                  (isLogout)="handleLogoutSuccessfully()"
                   [messageToReceive]="messageToReceive()"
                   [newConversation]="newConversation()"
                   [removeConversation]="removeConversation()"></app-navigation>
     @if(isCreateNewGroupScreen()) {
       <app-add-new-channel class="add-new-channel"
                            (submit)="createNewGroupDone($event)"
-                           [userInfo]="userInfo()"></app-add-new-channel>
+                           (actionSuccessful)="confirmAction($event)"
+                           [userInfo]="userInfo()!"></app-add-new-channel>
     }
     @else if (liveChat().conversationID != "") {
       <app-live-chat 
@@ -50,6 +52,11 @@
     }
     @if(actionStatus() == 'success' || actionStatus() == 'error') {
       <app-toast class="toast" [status]="actionStatus()"></app-toast> 
+    }
+    @if (needToPrivateKey()) {
+      <app-notification-dialog class="notification-dialog"
+                               [mode]="privateKeyMode()"
+                               (userPrivateKey)="savePrivateKey($event)"></app-notification-dialog>
     }
   </div>
 } 

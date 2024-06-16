@@ -1,0 +1,51 @@
+<div class="container">
+    <div class="header">
+        @if (mode() != "not_first_time") {
+            <span class="header_title">Welcome</span>
+        } 
+        @else {
+            <span class="header_title">Welcome Back</span>
+        }
+    </div>
+    <div class="body">
+        @if (mode() != "not_first_time") {
+            <div class="body_description">
+                <span>Welcome you to our application!</span>
+                <span>This key below is your private key which make your conversations safe and secure.</span>
+                <span>Copy and save your private key in secret place to serve for your future logins.</span>
+                <span>REMEMBER: Don't SHARE the key with anyone.</span>
+            </div>
+            <div class="body_key">
+                <input #privateKey 
+                       type="text" 
+                       [formControl]="privateKeyFormControl"
+                       readonly
+                       [value]="mode()">
+            </div>
+        }
+        @else {
+            <div class="body_description">
+                <span>Welcome you back to our application!</span>
+                <span>Enter your private key to read all your conversations.</span>
+            </div>
+            <div class="body_key">
+                <input #privateKey 
+                       type="text" 
+                       placeholder="Enter your private key"
+                       required
+                       [formControl]="privateKeyFormControl"
+                       >
+            </div>
+        }
+    </div>
+    <div class="footer">
+        <div class="footer_button">
+            @if (mode() != "not_first_time") {
+                <span class="footer_button_label" (click)="handleOnClick()">Done</span>
+            }
+            @else {
+                <span class="footer_button_label" (click)="handleOnClick()">Confirm</span>
+            }
+        </div>
+    </div>
+</div>

@@ -20,6 +20,10 @@ import { LoginComponent } from './login/login.component';
 import { routes } from './app.routes';
 import { ErrorInterceptor } from './error.interceptor';
 import CustomResponse from '../models/response';
+import { EcdhService } from './ecdh.service';
+import UpdateUserRequest from '../models/user/updateUserRequest';
+import { NotificationDialogComponent } from './notification-dialog/notification-dialog.component';
+import { EncryptionService } from './encryption.service';
 
 @Component({
   selector: 'app-root',
@@ -37,7 +41,8 @@ import CustomResponse from '../models/response';
     LoginComponent,
     HttpClientModule,
     DatePipe,
-    RouterModule
+    RouterModule,
+    NotificationDialogComponent,
   ],
   providers: [
     { provide: TINYMCE_SCRIPT_SRC, useValue: 'tinymce/tinymce.min.js' },
@@ -66,7 +71,10 @@ export class AppComponent implements OnInit, OnDestroy {
   directory = signal(false);
   needToConfirm = signal<boolean>(false);
   actionStatus = signal<string>("");
-  userInfo = signal<GetUserResponse>(JSON.parse(localStorage.getItem("user_info")!));
+  userInfo = signal<GetUserResponse|null>(JSON.parse(localStorage.getItem("user_info")!));
+  needToPrivateKey = signal<boolean>(false);
+  privateKeyMode = signal<string>("");
+  privateKey = signal<string>(localStorage.getItem(`${this.userInfo()?.id}_private_key`)!);
   authToken:string = this.userInfo()?.id!;
   confirmCallback = signal<(context:any) => boolean>(() => true);
   confirmContext = signal<Object>({});
@@ -106,6 +114,7 @@ export class AppComponent implements OnInit, OnDestroy {
     avatar: "",
     created_at: new Date(),
     last_updated: new Date(),
+    public_key: "",
   });
 
   removeConversation = signal<{
@@ -129,17 +138,24 @@ export class AppComponent implements OnInit, OnDestroy {
     msg_time: 0,
     sender: "",
     content: "",
+    iv: "",
     receiver: ""
   });
 
   constructor(private websocketService:WebsocketService,
               private userService:UserServiceService,
+              private ecdhService:EcdhService,
+              private encryptionService:EncryptionService
   ) {
     if (this.userInfo()) {
-      this.authToken = this.userInfo().id;
-      this.url = `ws://192.168.77.105:8082/user/ws?user_id=${this.userInfo().id}`
+      this.authToken = this.userInfo()!.id;
+      this.url = localStorage.getItem("access_token")!
       this.websocketService.connect(this.url);
     }
+    const keyPair = this.ecdhService.generateKeyPair();
+    const encryt = this.encryptionService.encrypt("Nguyễn Năng Cường và Nguyễn Hồng Thắm", keyPair.privateKey);
+    console.log("[encrypt]", encryt);
+    console.log("[decrypt]", this.encryptionService.decrypt(encryt.encryptMessage, keyPair.privateKey, encryt.iv));
     // effect(() => {
     //   const userInfo:GetUserResponse = this.userInfo();
     //   if (userInfo) {
@@ -151,19 +167,56 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   handleSuccessfulLogin(userID:string) {
+    this.url = localStorage.getItem("access_token")!
+    this.websocketService.connect(this.url);
     this.userService.getUser(userID, userID).subscribe(
       (val) => {
         const user:GetUserResponse = val.result as GetUserResponse;
         this.userInfo.set(user);
         this.authToken = user.id;
-        this.url = `ws://192.168.77.105:8082/user/ws?user_id=${this.userInfo().id}`
-        this.websocketService.connect(this.url);
         localStorage.setItem("user_info", JSON.stringify(user));
+        if (!user.public_key) {
+          const keyPair = this.ecdhService.generateKeyPair();
+          const updateUserRequest:UpdateUserRequest = {
+            password: "",
+            first_name: "",
+            last_name: "",
+            email: "",
+            phone_number: "",
+            avatar: "",
+            public_key: keyPair.publicKey,
+          };
+          this.userService.updateUser(localStorage.getItem("access_token")!, userID, updateUserRequest).subscribe(
+            (res) => {
+              console.log("[UpdateUser] Updating Public key successfully");
+              localStorage.setItem(`${userID}_private_key`, keyPair.privateKey);
+              this.privateKey.set(keyPair.privateKey);
+              this.privateKeyMode.set(keyPair.privateKey);
+              this.needToPrivateKey.set(true);
+
+            },
+            (err:CustomResponse) => {
+              console.log("[UpdateUser]:", err)
+            }
+          )
+        } else {
+          // Get Private Key from user
+          this.privateKeyMode.set("not_first_time");
+          this.needToPrivateKey.set(true);
+        }
       },
       (err:CustomResponse) => {
         console.log(err);
       }
     )
+  }
+
+  savePrivateKey(privateKey:string) {
+    console.log("[privateKey]", privateKey);
+    this.privateKey.set(privateKey);
+    localStorage.setItem(`${this.userInfo()!.id}_private_key`, privateKey);
+    this.needToPrivateKey.set(false);
+    this.privateKeyMode.set("");
   }
 
   sendMessage(message:Message) {
@@ -188,7 +241,9 @@ export class AppComponent implements OnInit, OnDestroy {
     //     console.log('WebSocket connection closed');
     //   }
     // );
-
+    if (!this.userInfo()) {
+      return;
+    }
     this.messageSubscription = this.websocketService.getMessages().subscribe(
       (message) => {
         // const parseMessage:Message = JSON.parse(message) as Message;
@@ -201,6 +256,7 @@ export class AppComponent implements OnInit, OnDestroy {
             msg_time: 0,
             sender: "",
             content: "",
+            iv: "",
             receiver: "",
           });
         }, 10);
@@ -347,5 +403,21 @@ export class AppComponent implements OnInit, OnDestroy {
       type: type,
     }
     this.newConversation.set(newConversation);
+  }
+
+  handleLogoutSuccessfully() {
+    // this.userInfo.set({
+    //   id: "",
+    //   username: "",
+    //   first_name: "",
+    //   last_name: "",
+    //   email: "",
+    //   phone_number: "",
+    //   avatar: "",
+    //   created_at: new Date(),
+    //   last_updated: new Date(),
+    //   public_key: "",
+    // });
+    this.userInfo.set(null);
   }
 }

@@ -4,4 +4,5 @@ export default interface ConversationMessage {
     msg_time:number;
     sender:string;
     content:string;
+    iv:string;
 }

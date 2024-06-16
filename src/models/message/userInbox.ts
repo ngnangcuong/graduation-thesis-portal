@@ -6,4 +6,5 @@ export default interface UserInbox {
     msg_time:number;
     sender:string;
     content:string;
+    iv:string;
 }

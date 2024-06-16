@@ -1,33 +1,46 @@
 import { Injectable } from '@angular/core';
-import { Observable, Observer, Subject } from 'rxjs';
+import { Observable, Observer, Subject, firstValueFrom } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 import Message from '../models/message';
 import ConversationMessage from '../models/message/conversationMessage';
+import { HttpClient } from '@angular/common/http';
+import CustomResponse from '../models/response';
 
 @Injectable({
   providedIn: 'root'
 })
 export class WebsocketService {
+  private baseURL = "ws://192.168.77.105"
+  private websocketForwarderURL = "http://192.168.77.105:8079/ws"
   private ws: WebSocket | null = null;
   private socket$!: WebSocketSubject<Message>;
 
-  constructor() {
+  constructor(private http:HttpClient) {
     // this.socket$ = webSocket('ws://your-websocket-server-url');
     // const conn = new WebSocket("ws://192.168.77.105:8082/ws?user_id=1e9113a3-5cae-4067-b6a6-530e68bab7e3", )
   }
+    
 
-  connect(url:string) {
-    console.log("connect")
-    // this.ws = new WebSocket(url);
+  connect(userID:string) {
+    // this.http.post<CustomResponse>(this.websocketForwarderURL, null).subscribe(
+    //   (val) => {
+    //     const ipAddress = val.result as {
+    //       ip_address: string;
+    //     };
+    //     const port = ipAddress.ip_address.split(":")[1];
+    //     const url = `${this.baseURL}:${port}/user/ws?user_id=${userID}`
+    //     console.log("[WebsocketForwarder] ", ipAddress);
+    //     this.socket$ = webSocket(url);
+    //     console.log("[socket]", this.socket$)
+    //   },
+    //   (err) => {
+    //     console.log("[WebsocketForwarder] ", err);
+    //     const url = `${this.baseURL}:8081/user/ws?user_id=${userID}`
+    //     this.socket$ = webSocket(url);
+    //   }
+    // )
+    const url = `${this.baseURL}:8081/user/ws?user_id=${userID}`
     this.socket$ = webSocket(url);
-    // this.ws.onerror = (event) => {
-    //   console.error('WebSocket error', event);
-    // };
-
-    // this.ws.onclose = () => {
-    //   console.log('WebSocket closed, attempting to reconnect...');
-    //   this.reconnect(url);
-    // };
   }
 
   private reconnect(url: string): void {

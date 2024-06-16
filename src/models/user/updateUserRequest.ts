@@ -5,4 +5,5 @@ export default interface UpdateUserRequest {
     email:string;
     phone_number:string;
     avatar:string;
+    public_key:string;
 }

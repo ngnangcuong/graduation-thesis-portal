@@ -36,6 +36,9 @@ export class AddNewChannelComponent implements AfterViewInit {
     conversationAvatar: string;
   }>();
 
+  @Output()
+  actionSuccessful = new EventEmitter<boolean>();
+
   init = {}
 
   constructor(private userService:UserServiceService,
@@ -158,7 +161,7 @@ export class AddNewChannelComponent implements AfterViewInit {
           createGroupRequest.members.push(user.id);
         })
 
-        this.groupService.createGroup(this.userInfo()?.id!, createGroupRequest).subscribe(
+        this.groupService.createGroup(localStorage.getItem("access_token")!, createGroupRequest).subscribe(
           (val) => {
             const result:CreateGroupResponse = val.result as CreateGroupResponse;
             group = result;
@@ -167,9 +170,11 @@ export class AddNewChannelComponent implements AfterViewInit {
               conversationName: this.groupnameInputField.nativeElement.value!,
               conversationAvatar: "#1abc9c"
             });
+            this.actionSuccessful.emit(true);
           },
           (err) => {
             console.log(err);
+            this.actionSuccessful.emit(false);
           }
         );
       })
@@ -177,6 +182,7 @@ export class AddNewChannelComponent implements AfterViewInit {
         conv_id: group.conv_id,
         conv_msg_id: 0,
         content: content,
+        iv: "",
         sender: this.userInfo()?.id!,
         msg_time: Date.now(),
         receiver: "",

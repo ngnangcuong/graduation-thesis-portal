@@ -31,6 +31,7 @@ export class ConversationComponent implements OnInit, AfterViewInit{
     msg_time: 0,
     sender: "",
     content: "",
+    iv: "",
     receiver: "",
   };
 
@@ -152,7 +153,7 @@ export class ConversationComponent implements OnInit, AfterViewInit{
           );
         } 
         if(!isDirected && this.name() == "") {
-          this.groupService.getGroup(this.userInfo().id, "", "", this.conversationID()!).subscribe(
+          this.groupService.getGroup(localStorage.getItem("access_token")!, "", "", this.conversationID()!).subscribe(
             (val) => {
               const result:GetGroupResponse = val.result as GetGroupResponse;
               console.log(result);
@@ -200,7 +201,7 @@ export class ConversationComponent implements OnInit, AfterViewInit{
       });
       this.confirmContext.emit({
         groupService: this.groupService,
-        userID: this.userInfo().id,
+        userID: localStorage.getItem("access_token"),
         groupID: this.groupID(),
         removeConversation: {
           conversationID: this.conversationID(),

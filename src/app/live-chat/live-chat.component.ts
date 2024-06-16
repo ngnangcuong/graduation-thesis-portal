@@ -14,6 +14,8 @@ import GetUserResponse from '../../models/user/getUserResponse';
 import GetConversationResponse from '../../models/group/getConversationResponse';
 import { CanvasComponent } from '../canvas/canvas.component';
 import UpdateReadReceiptRequest from '../../models/message/updateReadReceiptRequest';
+import { EcdhService } from '../ecdh.service';
+import { EncryptionService } from '../encryption.service';
 // import tinymce from 'tinymce';
 
 @Component({
@@ -39,6 +41,8 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
     conversationAvatar: string;
   }>();
   conversation!:string;
+  secretKey!: string;
+  isDirect = false;
   currentMessages:ConversationMessage[] = [];
   messageToReceive = input<Message>();
   // conversationMessages = computed(() => {
@@ -135,10 +139,15 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
   @Output()
   messageToSend = new EventEmitter<Message>();
 
+  @Output()
+  actionSuccessful = new EventEmitter<boolean>();
+
   constructor(private userService:UserServiceService,
               private groupService:GroupServiceService,
               private messageService:MessageServiceService,
               private websocketService:WebsocketService,
+              private ecdhService:EcdhService,
+              private encryptionService:EncryptionService,
   ) {
     this.init = {
       force_br_newlines : true,
@@ -220,14 +229,26 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
       if (currrentConversation?.conversationID != this.conversation) {
         // this.showMembers.set("");
         this.conversation = currrentConversation?.conversationID!;
+        this.secretKey = localStorage.getItem(`${this.conversation}_secret_key`)!;
         this.conversationMembers = [];
         this.groupService.getConversation(this.userInfo()?.id!, this.currrentConversation()?.conversationID!).subscribe(
           (val) => {
             const result:GetConversationResponse = val.result as GetConversationResponse;
+            if (result.members.length <= 2) {
+              this.isDirect = true;
+            } else {
+              this.isDirect = false;
+            }
             result.members.forEach((member) => {
               this.userService.getUser(this.userInfo()?.id!, member).subscribe(
                 (val) => {
                   const user:GetUserResponse = val.result as GetUserResponse;
+                  if (this.isDirect && this.secretKey == null && user.id != this.userInfo().id) {
+                    console.log("[secretKey]", this.secretKey);
+                    const privateKey = localStorage.getItem(`${this.userInfo().id}_private_key`);
+                    this.secretKey = this.ecdhService.deriveSharedKey(privateKey!, user.public_key);
+                    localStorage.setItem(`${this.conversation}_secret_key`, this.secretKey);
+                  }
                   this.conversationMembers.push({
                     userID: member,
                     username: user.username,
@@ -248,10 +269,46 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
           }
         )
         console.log("[conversationMembers]", this.conversationMembers)
-        this.messageService.getConversationMessages(this.authToken()!, currrentConversation?.conversationID!).subscribe(
+        this.messageService.getConversationMessages(localStorage.getItem("access_token")!, currrentConversation?.conversationID!).subscribe(
           (val) => {
             const result:ConversationMessage[] = val.result as ConversationMessage[];
-            this.currentMessages = result;
+            if (this.isDirect) {
+              var messages:ConversationMessage[] = [];
+              if (result) {
+
+                result.forEach((message) => {
+                  var decryptedMessage:ConversationMessage
+                  try {
+                    decryptedMessage = {
+                      conv_id: message.conv_id,
+                      conv_msg_id: message.conv_msg_id,
+                      msg_time: message.msg_time,
+                      sender: message.sender,
+                      content: this.encryptionService.decrypt(message.content, this.secretKey, message.iv),
+                      iv: message.iv,
+                    };
+
+                  } 
+                  catch (e) {
+                    console.log("[wrong key]", e);
+                    decryptedMessage = {
+                      conv_id: message.conv_id,
+                      conv_msg_id: message.conv_msg_id,
+                      msg_time: message.msg_time,
+                      sender: message.sender,
+                      content: "*******",
+                      iv: message.iv,
+                    };
+                  }
+                  messages.push(decryptedMessage);
+                })
+              } else {
+                messages = [];
+              }
+              this.currentMessages = messages;
+            } else {
+              this.currentMessages = result;
+            }
           },
           (err) => {
             this.currentMessages = [];
@@ -259,13 +316,26 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
           }
         )
       } else if (messageToReceive?.conv_id == currrentConversation.conversationID) {
-        if (this.currentMessages.length) {
-          this.currentMessages =  [messageToReceive!, ...this.currentMessages];
+        var messageToReceiveAfterDecrypt = messageToReceive;
+        if (this.isDirect) {
+          messageToReceiveAfterDecrypt.content = this.encryptionService.decrypt(messageToReceive.content, this.secretKey, messageToReceive.iv);
+        }
+        if (this.currentMessages) {
+          this.currentMessages =  [messageToReceiveAfterDecrypt, ...this.currentMessages];
 
         } else {
-          this.currentMessages = [messageToReceive];
+          this.currentMessages = [messageToReceiveAfterDecrypt];
         }
+        
       }
+      const updateReadReceipt:UpdateReadReceiptRequest = {
+        conv_id: this.currrentConversation()?.conversationID!,
+        read_receipt_update: [{
+          user_id: this.userInfo().id,
+          msg_id: 1000,
+        }]
+      }
+      this.messageService.updateReadReceipt(this.authToken()!, updateReadReceipt).subscribe();
       this.scrollToBottom();
     })
 
@@ -298,6 +368,14 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
     //     console.log("[getConversation]", err);
     //   }
     // )
+    const updateReadReceipt:UpdateReadReceiptRequest = {
+      conv_id: this.currrentConversation()?.conversationID!,
+      read_receipt_update: [{
+        user_id: this.userInfo().id,
+        msg_id: 1000,
+      }]
+    }
+    this.messageService.updateReadReceipt(this.authToken()!, updateReadReceipt).subscribe();
   }
 
   ngAfterViewInit(): void {
@@ -311,7 +389,7 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
       plugins: 'lists link image table code emoticons autoresize',
       images_reuse_filename: true,
       automatic_uploads: true,
-      images_upload_url: 'http://localhost:8081/v1/',
+      images_upload_url: 'http://192.168.77.105:8093/v1/',
       file_picker_types: 'file image media',
       file_picker_callback(callback, value, meta) {
         const input = document.createElement('input');
@@ -403,7 +481,12 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
     content != "" &&
     !event.event.shiftKey) {
       var receiver = "";
+      var sendContent = content;
+      var iv = "";
       if (this.conversationMembers.length <= 2) {
+        const encryptionMessage = this.encryptionService.encrypt(content, this.secretKey);
+        sendContent = encryptionMessage.encryptMessage;
+        iv = encryptionMessage.iv;
         if (this.conversationMembers[0].userID == this.userInfo().id) {
           receiver = this.conversationMembers[1].userID;
         } else {
@@ -413,7 +496,8 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
       const message:Message = {
         conv_id: this.conversation,
         conv_msg_id: 0,
-        content: content,
+        content: sendContent,
+        iv: iv,
         sender: this.userInfo().id,
         msg_time: Date.now(),
         receiver: receiver,
@@ -438,8 +522,8 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
           msg_id: 100,
         }]
       }
-      this.messageService.updateReadReceipt(this.authToken()!, updateReadReceipt).subscribe()
-    }, 10);
+      this.messageService.updateReadReceipt(this.authToken()!, updateReadReceipt).subscribe();
+    }, 100);
   }
 
   addQuote(event:string) {
