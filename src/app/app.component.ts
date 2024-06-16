@@ -160,7 +160,7 @@ export class AppComponent implements OnInit, OnDestroy {
     //   const userInfo:GetUserResponse = this.userInfo();
     //   if (userInfo) {
     //     this.authToken = this.userInfo().id;
-    //     this.url = `ws://192.168.77.105:8082/user/ws?user_id=${this.userInfo().id}`
+    //     this.url = `ws://125.212.231.209:8082/user/ws?user_id=${this.userInfo().id}`
     //     this.websocketService.connect(this.url);
     //   }
     // })

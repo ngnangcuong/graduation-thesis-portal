@@ -10,14 +10,14 @@ import CustomResponse from '../models/response';
   providedIn: 'root'
 })
 export class WebsocketService {
-  private baseURL = "ws://192.168.77.105"
-  private websocketForwarderURL = "http://192.168.77.105:8079/ws"
+  private baseURL = "ws://125.212.231.209"
+  private websocketForwarderURL = "http://125.212.231.209:8079/ws"
   private ws: WebSocket | null = null;
   private socket$!: WebSocketSubject<Message>;
 
   constructor(private http:HttpClient) {
     // this.socket$ = webSocket('ws://your-websocket-server-url');
-    // const conn = new WebSocket("ws://192.168.77.105:8082/ws?user_id=1e9113a3-5cae-4067-b6a6-530e68bab7e3", )
+    // const conn = new WebSocket("ws://125.212.231.209:8082/ws?user_id=1e9113a3-5cae-4067-b6a6-530e68bab7e3", )
   }
     
 
