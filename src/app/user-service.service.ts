@@ -12,7 +12,7 @@ import LoginResponse from '../models/user/loginResponse';
   providedIn: 'root',
 })
 export class UserServiceService {
-  private baseUrl = 'http://125.212.231.209:8098/v1';
+  private baseUrl = 'https://125.212.231.209:8098/v1';
 
   constructor(private http:HttpClient) { }
 

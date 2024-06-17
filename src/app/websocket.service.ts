@@ -11,7 +11,7 @@ import CustomResponse from '../models/response';
 })
 export class WebsocketService {
   private baseURL = "ws://125.212.231.209"
-  private websocketForwarderURL = "http://125.212.231.209:8079/ws"
+  private websocketForwarderURL = "https://125.212.231.209:8079/ws"
   private ws: WebSocket | null = null;
   private socket$!: WebSocketSubject<Message>;
 
