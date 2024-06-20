@@ -389,7 +389,7 @@ export class LiveChatComponent implements OnInit, AfterViewInit{
       plugins: 'lists link image table code emoticons autoresize',
       images_reuse_filename: true,
       automatic_uploads: true,
-      images_upload_url: 'https://125.212.231.209:8093/v1/',
+      images_upload_url: 'https://125.212.231.209:8093/v1',
       file_picker_types: 'file image media',
       file_picker_callback(callback, value, meta) {
         const input = document.createElement('input');
