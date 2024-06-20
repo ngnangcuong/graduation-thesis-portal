@@ -44,7 +44,7 @@ export class LoginComponent {
   register() {
     const name = this.nameRegister.value;
     const email = this.emailRegister.value;
-    const username = this.emailRegister.value;
+    const username = this.usernameRegister.value;
     const password = this.passwordRegister.value;
     const confirmPassword = this.confirmPasswordRegister.value;
     if (!name || !email || !username || !password || !confirmPassword) {
